@@ -1,9 +1,9 @@
 {
   "name": "preferencepass.payments.micro",
   "version": "0.0.0",
-  "main": "src/index.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "micro",
+    "start": "micro -p ${PORT:-3030}",
     "lint": "xo",
     "test": "npm run lint && ava"
   },
