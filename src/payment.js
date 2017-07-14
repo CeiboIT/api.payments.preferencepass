@@ -1,64 +1,54 @@
 'use strict';
 const config = require('./config');
 const stripe = require('stripe')(config.stripe.apikey);
+const uuidv4 = require('uuid/v4');
+
 stripe.setTimeout(20000);
 
 module.exports = {
     createSubscription: async function (req, res) {
-        const customer = await createCustomer(req);
-        const source = await createSource(req, customer.id); 
-        return createCharges(req);
+        const cardToken = 'src_18eYalAHEMiOZZp1l9ZTjSU0'; // retrieved by Stripe.js
+        const customerEmail = 'leojquinteros@gmail.com'; 
+        const customer = await createSourceForCostumer(customerEmail, cardToken, req); 
+        return createCharges(customer.id, customer.sourceId, req);
     }
 }
 
-const createCharges = function (req, res) {
+const createCharges = function (customerID, sourceID, req, res) {
     return new Promise(function (resolve, reject) {
         stripe.charges.create({
-            amount: req.amount,
-            currency: req.currency,
-            customer: req.customer
+            amount: 10,
+            currency: 'usd',
+            customer: customerID,
+            source: sourceID,
+            description: 'Charges for leojquinteros@gmail.com'
+        }, {
+            idempotency_key: uuidv4()
         }, function (err, charge) {
             if (err) {
                 reject(err);
             } else {
+                console.log('Charges created:', charge.id);
                 resolve(charge);
             }
         });
     });
 }
 
-const createCustomer = function (req, res) {
+const createSourceForCostumer = function (customerEmail, cardToken, req, res) {
     return new Promise(function (resolve, reject) {
         stripe.customers.create({
-            email: "leojquinteros@gmail.com"
-        }, function (err, customer) {
+            email: customerEmail,
+            source: cardToken
+        }, {
+            idempotency_key: uuidv4()
+       }, function (err, customer) {
             if (err) {
                 reject(err);
             } else {
+                console.log('Customer created:', customer.id);
                 resolve(customer);
             }
         });
     });
 }
-
-const createSource = function (req, customerID, res) {
-    return new Promise(function (resolve, reject) {
-        stripe.customers.createSource(customerID, {
-            source: {
-                object: req.card,
-                exp_month: req.expirationMonth,
-                exp_year: req.expirationYear,
-                number: req.cardNumber,
-                cvc: req.cvc
-            }
-       }, function (err, source) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(source);
-            }
-        });
-    });
-}
-
-

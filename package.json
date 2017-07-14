@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "micro": "latest",
-    "stripe": "^4.23.1"
+    "stripe": "^4.23.1",
+    "uuid": "^3.1.0"
   },
   "license": "MIT",
   "devDependencies": {

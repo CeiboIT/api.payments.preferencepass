@@ -1,5 +1,5 @@
 'use strict'
 const config = {};
 config.stripe = {};
-config.stripe.apikey = process.env.STRIPE_PRIVATE_KEY || 'sk_test_Z3oklQuGLKR4C7XA6NX3OzYt';
+config.stripe.apikey = process.env.STRIPE_PRIVATE_KEY || 'sk_test_BQokikJOvBiI2HlWgH4olfQ2';
 module.exports = config;
