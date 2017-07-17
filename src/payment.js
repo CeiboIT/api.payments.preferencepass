@@ -7,21 +7,19 @@ stripe.setTimeout(20000);
 
 module.exports = {
     createSubscription: async function (req, res) {
-        const cardToken = 'src_18eYalAHEMiOZZp1l9ZTjSU0'; // retrieved by Stripe.js
-        const customerEmail = 'leojquinteros@gmail.com'; 
-        const customer = await createSourceForCostumer(customerEmail, cardToken, req); 
-        return createCharges(customer.id, customer.sourceId, req);
+        const customer = await createSourceForCostumer(req); 
+        return createCharges(customer, req);
     }
 }
 
-const createCharges = function (customerID, sourceID, req, res) {
+const createCharges = function (customer, req, res) {
     return new Promise(function (resolve, reject) {
         stripe.charges.create({
-            amount: 10,
-            currency: 'usd',
-            customer: customerID,
-            source: sourceID,
-            description: 'Charges for leojquinteros@gmail.com'
+            amount: req.amount,
+            currency: req.currency,
+            customer: customer.id,
+            source: customer.sourceId,
+            description: req.description
         }, {
             idempotency_key: uuidv4()
         }, function (err, charge) {
@@ -35,11 +33,11 @@ const createCharges = function (customerID, sourceID, req, res) {
     });
 }
 
-const createSourceForCostumer = function (customerEmail, cardToken, req, res) {
+const createSourceForCostumer = function (req, res) {
     return new Promise(function (resolve, reject) {
         stripe.customers.create({
-            email: customerEmail,
-            source: cardToken
+            email: req.customerEmail,
+            source: req.cardToken
         }, {
             idempotency_key: uuidv4()
        }, function (err, customer) {

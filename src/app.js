@@ -1,16 +1,19 @@
 'use strict'
-const json = require('micro');
-const payment = require('./payment');
+const { json, send }  = require('micro')
+const { router, post, get } = require('microrouter')
+const payment = require('./payment')
 
-const postSubscription = async function (req, res)  {
-    const request = await json(req);
-    return payment.createSubscription(request);
+const postSubscription = async (req, res) => {
+    const body = await json(req)
+    const response = payment.createSubscription(body);
+    send(res, 200, response);
 }
 
-const methods = {
-    'POST': postSubscription
-};
+const notfound = (req, res) =>
+  send(res, 404, 'Not found route', req.url)
 
-module.exports = async function (req, res) {
-    return methods[req.method](req, res);
-}
+module.exports = router(
+  post('/subscription/new', postSubscription),
+  get('/*', notfound),
+  post('/*', notfound)
+)
