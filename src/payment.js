@@ -1,5 +1,6 @@
 'use strict';
 const config = require('./config');
+const pricing = require('./pricing');
 const stripe = require('stripe')(config.stripe.apikey);
 const uuidv4 = require('uuid/v4');
 
@@ -8,18 +9,17 @@ stripe.setTimeout(20000);
 module.exports = {
     createSubscription: async function (req, res) {
         const customer = await createSourceForCostumer(req); 
-        return createCharges(customer, req);
+        return createCharge(customer, req);
     }
 }
 
-const createCharges = function (customer, req, res) {
+const createCharge = function (customer, req, res) {
     return new Promise(function (resolve, reject) {
         stripe.charges.create({
-            amount: req.amount,
-            currency: req.currency,
+            amount: pricing.totalChargeAmount(req.adultsAmount, req.kidsAmount, req.days),
+            currency: "usd",
             customer: customer.id,
-            source: customer.sourceId,
-            description: req.description
+            source: customer.default_source
         }, {
             idempotency_key: uuidv4()
         }, function (err, charge) {
@@ -36,7 +36,7 @@ const createCharges = function (customer, req, res) {
 const createSourceForCostumer = function (req, res) {
     return new Promise(function (resolve, reject) {
         stripe.customers.create({
-            email: req.customerEmail,
+            description: 'Customer for Preference Pass',
             source: req.cardToken
         }, {
             idempotency_key: uuidv4()
