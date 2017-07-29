@@ -6,8 +6,6 @@ const payment = require('./payment')
 const postSubscription = async (req, res) => {
     try {
       let body = await json(req)
-      //TODO remove this line below when 'days' already comes in the body request
-      !(body.days) ? body.days = 1 : body.days 
       const response = await payment.createSubscription(body);
       send(res, 200, response);
     } catch (err) {
