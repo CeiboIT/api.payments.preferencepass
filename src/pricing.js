@@ -24,6 +24,6 @@ module.exports = {
     return Math.round(
       pricing.adultPrice * (adultsAmount + 1) + 
       pricing.kidPrice * kidsAmount
-    )
+    ) * 100
   }
 }
