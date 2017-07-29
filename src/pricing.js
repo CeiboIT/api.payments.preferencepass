@@ -20,16 +20,10 @@ module.exports = {
     let pricing = prices[plan]
     console.log(pricing)
     if(!pricing) throw createError(400,'Invalid days amount value')
-      let adultsTotalPrice = (adultsAmount + 1) * pricing.adultPrice;
-      let kidsTotalPrice = kidsAmount * pricing.kidPrice;
-      let total = adultsTotalPrice + kidsTotalPrice || 0;
-
-    // return Math.round(
-    //   pricing.adultPrice * (adultsAmount + 1) + 
-    //   pricing.kidPrice * kidsAmount
-    // )
-
-
-    return Math.round((total) * 100) / 100;
+      
+    return Math.round(
+      pricing.adultPrice * (adultsAmount + 1) + 
+      pricing.kidPrice * kidsAmount
+    )
   }
 }
