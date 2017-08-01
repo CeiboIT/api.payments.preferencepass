@@ -4,9 +4,9 @@ const { router, post, get } = require('microrouter')
 const payment = require('./payment')
 
 const microCors = require('micro-cors')
-const cors = microCors({ 
-  origin: 'http://localhost:4200'
-})
+const cors = microCors()
+// const microCors = require('micro-cors')
+// const cors = microCors({ origin: 'http://localhost:4200', allowMethods: ['GET', 'PUT', 'POST'], allowHeaders: ['Content-Type','Authorization'] })
 
 const postSubscription = async (req, res) => {
     try {

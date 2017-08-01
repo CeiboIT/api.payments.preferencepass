@@ -1,6 +1,7 @@
 'use strict';
 const config = require('./config');
 const pricing = require('./pricing');
+const subscription = require('./subscription');
 const stripe = require('stripe')(config.stripe.apikey);
 const uuidv4 = require('uuid/v4');
 
@@ -8,14 +9,15 @@ stripe.setTimeout(20000);
 
 module.exports = {
     createSubscription: async function (req, res) {
-        const customer = await createSourceForCostumer(req); 
-        return createCharge(customer, req);
+        const customer = await createSourceForCostumer(req);
+        const charge = await createCharge(customer, req);
+        return subscription.saveSubscription(charge, req);
+        // return createCharge(customer, req);
     }
 }
 
 const createCharge = function (customer, req, res) {
     return new Promise(function (resolve, reject) {
-        console.log('createCharge', req)
         stripe.charges.create({
             amount: pricing.totalChargeAmount(req.adultsAmount, req.kidsAmount, req.plan),
             currency: "usd",
@@ -27,7 +29,6 @@ const createCharge = function (customer, req, res) {
             if (err) {
                 reject(err);
             } else {
-                console.log('Charges created:', charge.id);
                 resolve(charge);
             }
         });
@@ -45,7 +46,6 @@ const createSourceForCostumer = function (req, res) {
             if (err) {
                 reject(err);
             } else {
-                console.log('Customer created:', customer.id);
                 resolve(customer);
             }
         });

@@ -18,7 +18,6 @@ const prices = {
 module.exports = {
   totalChargeAmount: function (adultsAmount, kidsAmount, plan, res) {
     let pricing = prices[plan]
-    console.log(pricing)
     if(!pricing) throw createError(400,'Invalid days amount value')
       
     return Math.round(
