@@ -21,7 +21,6 @@ const addSubscription = function (charge, req, res) {
     return new Promise(function (resolve, reject) {
         console.log('charge: ', charge);
         console.log('req: ', req);
-
         var adults = req.adultsAmount;
         var kids = req.kidsAmount
         var isComingAlone = req.isComingAlone || false;

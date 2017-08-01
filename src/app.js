@@ -10,8 +10,8 @@ const cors = microCors();
 const postSubscription = async (req, res) => {
     console.log('Going to do Subscription');
     try {
-      let body = await json(req)
-      const response = await payment.createSubscription(body);
+        let body = await json(req);
+        const response = await payment.createSubscription(body);
       send(res, 200, response);
     } catch (err) {
       console.log(err.stack)
