@@ -21,25 +21,23 @@ const addSubscription = function (charge, req, res) {
     return new Promise(function (resolve, reject) {
         console.log('charge: ', charge);
         console.log('req: ', req);
-        var data = {
-            adults: 1,
-            kids: 1,
-            isComingAlone: false,
-            validity: 111111111,
-            type: 'OneDay'
-        }
+
+        var adults = req.adultsAmount;
+        var kids = req.kidsAmount
+        var isComingAlone = req.isComingAlone || false;
+        var type = req.plan;
+        var validity = '';
+        const CREATE_SUBSCRIPTION = gql`
+            mutation { createSubscription (adults: ${adults}, kids: ${kids}, isComingAlone: ${isComingAlone}, type: ${type}, validity: "2009-06-15T13:45:30") {
+                id
+            } }
+            `;
+
         client.mutate({
-            mutation: gql`
-                mutation createSubscription($adults: Int!, $kids: Int, $isComingAlone: Boolean, $validity: DateTime!, $type: Plans!) {
-                    createSubscription(adults: $adults, kids: $kids, isComingAlone: $isComingAlone, validity: $validity, type: $type)
-                }
-            `,
-            variables: {
-                data: data
-            }
-            })
-            .then(data => console.log(data))
-            .catch(error => console.error(error));
+            mutation: CREATE_SUBSCRIPTION,
+        })
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
 
         // createSubscription(adults: req.adultsAmount, kids: req.kidsAmount, isComingAlone: req.isComingAlone, validity: 123, subscriptorId: userID, type: req.plan)
         resolve();
