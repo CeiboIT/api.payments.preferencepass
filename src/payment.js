@@ -17,6 +17,7 @@ module.exports = {
 }
 
 const createCharge = function (customer, req, res) {
+    console.log('Going to do charge');
     return new Promise(function (resolve, reject) {
         stripe.charges.create({
             amount: pricing.totalChargeAmount(req.adultsAmount, req.kidsAmount, req.plan),

@@ -1,14 +1,14 @@
 'use strict'
-const { json, send }  = require('micro')
-const { router, post, get } = require('microrouter')
-const payment = require('./payment')
+const { json, send }  = require('micro');
+const { router, post, get } = require('microrouter');
+const payment = require('./payment');
 
-const microCors = require('micro-cors')
-const cors = microCors()
+const microCors = require('micro-cors');
+const cors = microCors();
 // const microCors = require('micro-cors')
 // const cors = microCors({ origin: 'http://localhost:4200', allowMethods: ['GET', 'PUT', 'POST'], allowHeaders: ['Content-Type','Authorization'] })
-
 const postSubscription = async (req, res) => {
+    console.log('Going to do Subscription');
     try {
       let body = await json(req)
       const response = await payment.createSubscription(body);
@@ -21,9 +21,10 @@ const postSubscription = async (req, res) => {
 
 const notfound = (req, res) =>
   send(res, 404, 'Could not find route', req.url)
+const handler = (req, res) => send(res, 200, 'ok!')
 
-module.exports = router(
-  post('/subscription/new', cors(postSubscription)),
+module.exports = cors(router(
+  post('/subscription/new', postSubscription),
   get('/*', notfound),
   post('/*', notfound)
-)
+));
