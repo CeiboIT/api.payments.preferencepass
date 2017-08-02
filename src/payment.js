@@ -9,6 +9,7 @@ stripe.setTimeout(20000);
 
 module.exports = {
     createSubscription: async function (req, res) {
+        console.log('Request: ', req);
         const customer = await createSourceForCostumer(req);
         const charge = await createCharge(customer, req);
         return subscription.saveSubscription(charge, req);
