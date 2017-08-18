@@ -17,9 +17,15 @@ module.exports = {
         return addSubscription(charge, req);
     }
 }
-function calculateValidityDate(Plan){
-    const today = moment();
-    var validity = today.clone();
+function calculateValidityDate(Plan, startsAt){
+    const init = moment(startsAt).set({
+        'hours': 0,
+        'minutes': 0,
+        'seconds': 0,
+        'milliseconds': 0
+    });
+
+    var validity = init.clone();
     validity = validity.hours(23).minutes(59).seconds(59);
     var formattedDate = '';
     switch(Plan){
@@ -57,8 +63,10 @@ const addSubscription = function (charge, req, res) {
         var isComingAlone = req.isComingAlone || false;
         var type = req.plan;
         var subscriptorId = req.subscriptorId;
-        var validity = '' + calculateValidityDate(type);
+        var startsAt = req.startsAt;
+        var validity = '' + calculateValidityDate(type, startsAt);
         console.log('Validity: ', validity);
+        console.log('Subscriptor: ', subscriptorId);
         const CREATE_SUBSCRIPTION = gql`
             mutation NewSubscription(
             $adults: Int!,
@@ -67,15 +75,17 @@ const addSubscription = function (charge, req, res) {
             $plan: String!,
             $subscriptorId: ID!,
             $stripePayment: Json!,
+            $startsAt: DateTime!,
             $validity: DateTime!) {
                 createSubscription(
                     adults: $adults,
                     kids: $kids,
                     isComingAlone: $isComingAlone,
                     plan: $plan,
-                    subscriptorId: $subscriptorId,
+                    userId: $subscriptorId,
                     stripePayment: $stripePayment,
-                    validity: $validity
+                    validity: $validity,
+                    startsAt: $startsAt
                 ) {
                     id
                 }
@@ -90,7 +100,8 @@ const addSubscription = function (charge, req, res) {
                 plan: type,
                 subscriptorId: subscriptorId,
                 stripePayment: charge,
-                validity: validity
+                validity: validity,
+                startsAt: startsAt
             }
         })
         .then(data => resolve(data)).catch(error => reject(error))
