@@ -71,7 +71,7 @@ const addSubscription = function (charge, req, res) {
             mutation NewSubscription(
             $adults: Int!,
             $kids: Int!,
-            $isComingAlone: Boolean!,
+            $isComingAlone: Boolean,
             $plan: String!,
             $subscriptorId: ID!,
             $stripePayment: Json!,
