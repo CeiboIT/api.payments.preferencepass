@@ -2,16 +2,16 @@
 const createError = require('micro').createError
 const prices = {
   OneDay: { 
-    adultPrice : 19.99, kidPrice: 9.99
+    adultPrice : 19, kidPrice: 9
   },
   FourDays: { 
-    adultPrice: 59.99, kidPrice: 29.99
+    adultPrice: 59, kidPrice: 29
   },
   SevenDays: { 
-    adultPrice : 79.99, kidPrice: 39.99
+    adultPrice : 79, kidPrice: 39
   },
   FourteenDays: {
-    adultPrice : 99.99, kidPrice: 49.99
+    adultPrice : 99, kidPrice: 49
   }
 };
 
@@ -20,9 +20,7 @@ module.exports = {
     let pricing = prices[plan]
     if(!pricing) throw createError(400,'Invalid days amount value')
       
-    return Math.round(
-      pricing.adultPrice * (adultsAmount + 1) + 
+    return pricing.adultPrice * (adultsAmount + 1) + 
       pricing.kidPrice * kidsAmount
-    ) * 100
   }
 }
