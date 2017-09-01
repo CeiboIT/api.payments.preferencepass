@@ -53,7 +53,6 @@ function calculateValidityDate(Plan, startsAt){
     return  ''+ _formattedValidity;
 }
 
-
 const addSubscription = function (charge, req, res) {
     return new Promise(function (resolve, reject) {
         console.log('charge: ', charge);
@@ -63,8 +62,16 @@ const addSubscription = function (charge, req, res) {
         var isComingAlone = req.isComingAlone || false;
         var type = req.plan;
         var subscriptorId = req.subscriptorId;
-        var startsAt = req.startsAt;
-        var validity = '' + calculateValidityDate(type, startsAt);
+        
+        var startsAt = moment(req.startsAt).clone();
+
+        startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
+        var _formattedStartsAt = startsAt.toISOString();
+
+        console.log(_formattedStartsAt);
+
+
+        var validity = '' + calculateValidityDate(type, _formattedStartsAt);
         console.log('Validity: ', validity);
         console.log('Subscriptor: ', subscriptorId);
         const CREATE_SUBSCRIPTION = gql`
@@ -88,6 +95,20 @@ const addSubscription = function (charge, req, res) {
                     startsAt: $startsAt
                 ) {
                     id
+                    validity
+                    kids
+                    adults
+                    companions {
+                        id
+                    }
+                    isComingAlone
+                    plan
+                    user {
+                        id
+                    }
+                    reservations {
+                        id
+                    }
                 }
             }
             `;
@@ -101,7 +122,7 @@ const addSubscription = function (charge, req, res) {
                 subscriptorId: subscriptorId,
                 stripePayment: charge,
                 validity: validity,
-                startsAt: startsAt
+                startsAt: _formattedStartsAt
             }
         })
         .then(data => resolve(data)).catch(error => reject(error))

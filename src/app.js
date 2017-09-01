@@ -21,7 +21,7 @@ const postSubscription = async (req, res) => {
         console.log(body);
         const response = await payment.createSubscription(body);
         console.log('Checking response', response);
-      send(res, 200, { id: response.data.createSubscription.id});
+      send(res, 200, response.data.createSubscription);
     } catch (err) {
       console.log(err.stack);
       console.log('Entered to Error');
