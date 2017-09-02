@@ -1,6 +1,5 @@
 'use strict';
 const createError = require('micro').createError
-// import ApolloClient, { createNetworkInterface } from 'apollo-client';
 const {ApolloClient} = require('apollo-client')
 const createNetworkInterface = require('apollo-client').createNetworkInterface;
 const moment = require('moment');

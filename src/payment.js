@@ -2,6 +2,7 @@
 const config = require('./config');
 const pricing = require('./pricing');
 const subscription = require('./subscription');
+const mailing = require('./mandrill');
 const stripe = require('stripe')(config.stripe.apikey);
 const uuidv4 = require('uuid/v4');
 
@@ -12,6 +13,7 @@ module.exports = {
         console.log('Request: ', req);
         const customer = await createSourceForCostumer(req);
         const charge = await createCharge(customer, req);
+        await mailing.sendMailForNewSubscription(charge, req);
         return subscription.saveSubscription(charge, req);
         // return createCharge(customer, req);
     },
