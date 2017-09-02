@@ -14,6 +14,12 @@ module.exports = {
         const charge = await createCharge(customer, req);
         return subscription.saveSubscription(charge, req);
         // return createCharge(customer, req);
+    },
+
+    createPayPalSubscription: async function (req, res) {
+        // The idea is act the same than with Stripe, with the only difference that the charge has been already done.
+        console.log('Request for PayPal')
+        return subscription.saveSubscriptionFromPayPal(req);
     }
 }
 

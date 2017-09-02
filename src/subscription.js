@@ -12,11 +12,48 @@ const client = new ApolloClient({
   })
 });
 
-module.exports = {
-    saveSubscription: async function (charge, req, res) {
-        return addSubscription(charge, req);
+const CREATE_SUBSCRIPTION = gql`
+mutation NewSubscription(
+$adults: Int!,
+$kids: Int!,
+$isComingAlone: Boolean,
+$plan: String!,
+$subscriptorId: ID!,
+$payment: Json!,
+$startsAt: DateTime!,
+$paymentSource: PaymentSources,
+$validity: DateTime!
+) {
+    createSubscription(
+        adults: $adults,
+        kids: $kids,
+        isComingAlone: $isComingAlone,
+        plan: $plan,
+        userId: $subscriptorId,
+        payment: $payment,
+        validity: $validity,
+        startsAt: $startsAt
+        paymentSource: $paymentSource
+    ) {
+        id
+        validity
+        kids
+        adults
+        companions {
+            id
+        }
+        isComingAlone
+        plan
+        user {
+            id
+        }
+        reservations {
+            id
+        }
     }
 }
+`;
+
 function calculateValidityDate(Plan, startsAt){
     const init = moment(startsAt).set({
         'hours': 0,
@@ -68,50 +105,11 @@ const addSubscription = function (charge, req, res) {
         startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
         var _formattedStartsAt = startsAt.toISOString();
 
-        console.log(_formattedStartsAt);
-
 
         var validity = '' + calculateValidityDate(type, _formattedStartsAt);
         console.log('Validity: ', validity);
         console.log('Subscriptor: ', subscriptorId);
-        const CREATE_SUBSCRIPTION = gql`
-            mutation NewSubscription(
-            $adults: Int!,
-            $kids: Int!,
-            $isComingAlone: Boolean,
-            $plan: String!,
-            $subscriptorId: ID!,
-            $stripePayment: Json!,
-            $startsAt: DateTime!,
-            $validity: DateTime!) {
-                createSubscription(
-                    adults: $adults,
-                    kids: $kids,
-                    isComingAlone: $isComingAlone,
-                    plan: $plan,
-                    userId: $subscriptorId,
-                    stripePayment: $stripePayment,
-                    validity: $validity,
-                    startsAt: $startsAt
-                ) {
-                    id
-                    validity
-                    kids
-                    adults
-                    companions {
-                        id
-                    }
-                    isComingAlone
-                    plan
-                    user {
-                        id
-                    }
-                    reservations {
-                        id
-                    }
-                }
-            }
-            `;
+        
         client.mutate({
             mutation: CREATE_SUBSCRIPTION,
             variables: {
@@ -120,11 +118,51 @@ const addSubscription = function (charge, req, res) {
                 isComingAlone: isComingAlone,
                 plan: type,
                 subscriptorId: subscriptorId,
-                stripePayment: charge,
+                payment: charge,
                 validity: validity,
-                startsAt: _formattedStartsAt
+                startsAt: _formattedStartsAt,
+                paymentSource: 'Stripe'
             }
         })
         .then(data => resolve(data)).catch(error => reject(error))
     });
+}
+
+const addSubscriptionFromPayPal = function(req) {
+    return new Promise((resolve, reject) => {
+        const adults = req.adultsAmount;
+        const isComingAlone = req.isComingAlone || false;
+        const type = req.plan;
+        const subscriptorId = req.subscriptorId;
+        var startsAt = moment(req.startsAt).clone();
+        startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
+        const _formattedStartsAt = startsAt.toISOString();
+        const validity = '' + calculateValidityDate(type, _formattedStartsAt);
+        const payment = req.payment;
+        console.log('Validity: ', validity);
+        console.log('Subscriptor: ', subscriptorId);
+        client.mutate({
+            mutation: CREATE_SUBSCRIPTION,
+            variables: {
+                kids: adults,
+                adults: kids,
+                isComingAlone: isComingAlone,
+                plan: type,
+                subscriptorId: subscriptorId,
+                payment: payment,
+                validity: validity,
+                startsAt: _formattedStartsAt,
+                paymentSource: 'PayPal'
+            }
+        })
+    })
+}
+
+module.exports = {
+    saveSubscription: async function (charge, req, res) {
+        return addSubscription(charge, req);
+    },
+    saveSubscriptionFromPayPal: async function (req) {
+        return addSubscriptionFromPayPal(req);
+    }
 }
