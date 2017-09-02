@@ -9,7 +9,11 @@ const DATE_FORMAT = "MMMM DD YYYY";
 
 module.exports = {
     sendMailForNewSubscription: async function (charge, req, res) {
-        return sendMail(charge, req);
+        if(req.customerEmail) {
+            return sendMail(charge, req);
+        } else {
+            console.log("Unable to send subscription email - customerEmail missing");
+        }
     }
 }
 
@@ -43,11 +47,11 @@ const sendMail = function (charge, req, res) {
                     },
                     {
                         "name": "price",
-                        "content": charge.amount
+                        "content": (charge.amount) / 100 // expresado en dolares, NO centavos
                     },
                     {
                         "name": "currency",
-                        "content": charge.currency
+                        "content": charge.currency //usd
                     },
                     {
                         "name": "startsAt",
