@@ -57,7 +57,7 @@ const handler = (req, res) => send(res, 200, 'ok!')
 
 module.exports = cors(router(
   post('/subscription/new', postSubscription),
-  post('/subscription/new/paypal', payPalSubscription)
+  post('/subscription/new/paypal', payPalSubscription),
   get('/*', notfound),
   post('/*', notfound)
 ));
