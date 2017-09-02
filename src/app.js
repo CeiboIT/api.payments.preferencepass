@@ -29,7 +29,7 @@ const postSubscription = async (req, res) => {
 }
 
 const payPalSubscription = async(req, res) => {
-  console.log('Going to do Subscription');
+  console.log('Going to do Subscription with Paypal');
   console.log('Headers: ', JSON.stringify(req.headers));
   console.log(req.headers.authorization);
   var token = req.headers.authorization.replace('Bearer ','');

@@ -20,7 +20,7 @@ $plan: String!,
 $subscriptorId: ID!,
 $payment: Json!,
 $startsAt: DateTime!,
-$paymentSource: PaymentSources,
+$paymentSource: String!,
 $validity: DateTime!
 ) {
     createSubscription(
@@ -130,6 +130,7 @@ const addSubscription = function (charge, req, res) {
 const addSubscriptionFromPayPal = function(req) {
     return new Promise((resolve, reject) => {
         const adults = req.adultsAmount;
+        const kids = req.kidsAmount;
         const isComingAlone = req.isComingAlone || false;
         const type = req.plan;
         const subscriptorId = req.subscriptorId;
@@ -153,7 +154,7 @@ const addSubscriptionFromPayPal = function(req) {
                 startsAt: _formattedStartsAt,
                 paymentSource: 'PayPal'
             }
-        })
+        }).then(data => resolve(data)).catch(error => reject(error))
     })
 }
 
