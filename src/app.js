@@ -4,6 +4,7 @@ const { router, post, get } = require('microrouter');
 const payment = require('./payment');
 const jwt = require('jsonwebtoken');
 const microCors = require('micro-cors');
+global.fetch = require('node-fetch');
 const cors = microCors();
 
 const postSubscription = async (req, res) => {
