@@ -2,6 +2,18 @@
   "name": "preferencepass.payments.micro",
   "version": "0.0.0",
   "main": "src/app.js",
+  "now": {
+    "name": "payments-preferencepass",
+    "public": false,
+    "alias": [
+      "payments.preferencepass.xyz"
+    ],
+    "env": {
+      "STRIPE_PRIVATE_KEY": "sk_test_ny6ghZN9qZRn50ShukKLMEee",
+      "MANDRILL_API_KEY": "7GZhk_UytExYjiiB9briAw",
+      "GRAPHCOOL_SUBSCRIPTIONS_URI": "cj41c9u2zddol0177la66g30g"
+    }
+  },
   "scripts": {
     "start": "micro -p ${PORT:-3030}",
     "lint": "xo",

@@ -1,27 +1,28 @@
 'use strict';
-const config = require('./config');
 const mandrill = require('mandrill-api/mandrill');
+const config = require('./config');
 const mandrill_client = new mandrill.Mandrill(config.mandrill.apikey);
 const moment = require('moment');
+const pricing = require('./pricing');
 
 const NEW_SUBSCRIPTION_TEMPLATE_NAME = "new_subscription";
 const DATE_FORMAT = "MMMM DD YYYY";
 
 module.exports = {
-    sendMailForNewSubscription: async function (charge, req, res) {
+    sendMailForNewSubscription: async function (req, res) {
         if(req.customerEmail) {
-            return sendMail(charge, req);
+            return sendMail(req);
         } else {
             console.log("Unable to send subscription email - customerEmail missing");
         }
     }
 }
 
-const sendMail = function (charge, req, res) {
+const sendMail = function (req, res) {
     return new Promise(function (resolve, reject) {
         const template_content = [{
             "name": "name",
-            "content": "new_subscription"
+            "content": NEW_SUBSCRIPTION_TEMPLATE_NAME
         }];
         const message = {
             "subject": "Thank you for your subscription!",
@@ -47,11 +48,11 @@ const sendMail = function (charge, req, res) {
                     },
                     {
                         "name": "price",
-                        "content": (charge.amount) / 100 // expresado en dolares, NO centavos
+                        "content": pricing.finalPriceForEmail(req)
                     },
                     {
                         "name": "currency",
-                        "content": charge.currency //usd
+                        "content": "USD"
                     },
                     {
                         "name": "startsAt",
@@ -71,8 +72,11 @@ const sendMail = function (charge, req, res) {
             },
             function(result) {
                 console.log(result);
+                resolve(result);
             }, function(e) {
                 console.log('A mandrill error occurred: ' + e.name + ' - ' + e.message);
+                //resolve promise anyway in case of error
+                resolve(e);
             }
         );
     })

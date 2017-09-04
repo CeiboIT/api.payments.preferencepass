@@ -13,21 +13,22 @@ module.exports = {
         console.log('Request: ', req);
         const customer = await createSourceForCostumer(req);
         const charge = await createCharge(customer, req);
-        await mailing.sendMailForNewSubscription(charge, req);
+        await mailing.sendMailForNewSubscription(req);
         return subscription.saveSubscription(charge, req);
         // return createCharge(customer, req);
     },
 
     createPayPalSubscription: async function (req, res) {
         // The idea is act the same than with Stripe, with the only difference that the charge has been already done.
-        console.log('Request for PayPal')
+        console.log('Request for PayPal');
+        await mailing.sendMailForNewSubscription(req);
         return subscription.saveSubscriptionFromPayPal(req);
     }
 }
 
 const createCharge = function (customer, req, res) {
     console.log('Going to do charge');
-    const amount = pricing.totalChargeAmount(req.adultsAmount, req.kidsAmount, req.plan);
+    const amount = pricing.totalChargeAmount(req);
     console.log('Amount to charge: ', amount);
     console.log('Customer: ', customer.id);
     console.log('Customer Resource', customer.default_source);

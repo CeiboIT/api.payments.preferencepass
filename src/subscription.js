@@ -4,10 +4,11 @@ const {ApolloClient} = require('apollo-client')
 const createNetworkInterface = require('apollo-client').createNetworkInterface;
 const moment = require('moment');
 const gql = require('graphql-tag');
+const config = require('./config');
  
 const client = new ApolloClient({
   networkInterface: createNetworkInterface({
-    uri : 'https://api.graph.cool/simple/v1/cj41c9u2zddol0177la66g30g'
+    uri : 'https://api.graph.cool/simple/v1/' + config.graphcool.uri
   })
 });
 
