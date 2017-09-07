@@ -4,61 +4,36 @@ const { router, post, get } = require('microrouter');
 const payment = require('./payment');
 const jwt = require('jsonwebtoken');
 const microCors = require('micro-cors');
-global.fetch = require('node-fetch');
 const cors = microCors();
+const allowedPaymentMethods = require('./config').allowedPaymentMethods;
+global.fetch = require('node-fetch');
 
 const postSubscription = async (req, res) => {
-  console.log('Going to do Subscription');
-  console.log('Headers: ', JSON.stringify(req.headers));
-  console.log(req.headers.authorization);
+  console.log('[POST] Subscription for request:', req);
+  console.log('[POST] Headers: ', JSON.stringify(req.headers));
   var token = req.headers.authorization.replace('Bearer ','');
   token = jwt.decode(token);
-
+  console.log(token);
   try {
-    let body = await json(req);
-    console.log(token);
-    body.subscriptorId = token.userId;
-    console.log(body);
-    const response = await payment.createSubscription(body);
-    console.log('Checking response', response);
-    send(res, 200, response.data.createSubscription);
+    let request = await json(req);  
+    request.subscriptorId = token.userId;
+    if (allowedPaymentMethods.includes(request.type)) {
+      const response = await payment.createSubscription(request);
+      console.log('Checking response: ', response);
+      send(res, 200, response.data.createSubscription);
+    } else {
+      send(res, 404, 'Invalid payment type: ' + request.type);
+    } 
   } catch (err) {
-    console.log(err.stack);
-    console.log('Entered to Error');
+    console.log('An error has occurred during subscription: ', err.stack);
     send(res, err.statusCode, err.message)
   }
-}
-
-const payPalSubscription = async(req, res) => {
-  console.log('Going to do Subscription with Paypal');
-  console.log('Headers: ', JSON.stringify(req.headers));
-  console.log(req.headers.authorization);
-  var token = req.headers.authorization.replace('Bearer ','');
-  token = jwt.decode(token);
-
-  try {
-      let body = await json(req);
-      console.log(token);
-      body.subscriptorId = token.userId;
-      console.log(body);
-      const response = await payment.createPayPalSubscription(body);
-      console.log('Checking response', response);
-    send(res, 200, response.data.createSubscription);
-  } catch (err) {
-    console.log(err.stack);
-    console.log('Entered to Error');
-    send(res, err.statusCode, err.message)
-  }
-
 }
 
 const notfound = (req, res) =>
-  send(res, 404, 'Could not find route', req.url)
-const handler = (req, res) => send(res, 200, 'ok!')
+  send(res, 404, 'Could not find route: ' + req.method + req.url);
 
 module.exports = cors(router(
-  post('/subscription/new', postSubscription),
-  post('/subscription/new/paypal', payPalSubscription),
-  get('/*', notfound),
-  post('/*', notfound)
+  post('/subscription', postSubscription),
+  get('/*', notfound)
 ));

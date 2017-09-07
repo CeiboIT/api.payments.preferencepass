@@ -13,18 +13,18 @@ const client = new ApolloClient({
 });
 
 const CREATE_SUBSCRIPTION = gql`
-mutation NewSubscription(
-$adults: Int!,
-$kids: Int!,
-$isComingAlone: Boolean,
-$plan: String!,
-$subscriptorId: ID!,
-$payment: Json!,
-$startsAt: DateTime!,
-$paymentSource: String!,
-$validity: DateTime!
-) {
-    createSubscription(
+    mutation NewPPSubscription(
+        $adults: Int!,
+        $kids: Int!,
+        $isComingAlone: Boolean,
+        $plan: String!,
+        $subscriptorId: ID!,
+        $payment: Json!,
+        $startsAt: DateTime!,
+        $paymentSource: String!,
+        $validity: DateTime!
+    ) {
+    createPPSubscription(
         adults: $adults,
         kids: $kids,
         isComingAlone: $isComingAlone,
@@ -90,80 +90,38 @@ function calculateValidityDate(Plan, startsAt){
     return  ''+ _formattedValidity;
 }
 
-const addSubscription = function (charge, req, res) {
-    return new Promise(function (resolve, reject) {
-        console.log('charge: ', charge);
-        console.log('req: ', req);
-        var adults = req.adultsAmount;
-        var kids = req.kidsAmount
-        var isComingAlone = req.isComingAlone || false;
-        var type = req.plan;
-        var subscriptorId = req.subscriptorId;
-        
-        var startsAt = moment(req.startsAt).clone();
-
-        startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
-        var _formattedStartsAt = startsAt.toISOString();
-
-
-        var validity = '' + calculateValidityDate(type, _formattedStartsAt);
-        console.log('Validity: ', validity);
-        console.log('Subscriptor: ', subscriptorId);
-        
-        client.mutate({
-            mutation: CREATE_SUBSCRIPTION,
-            variables: {
-                kids: adults,
-                adults: kids,
-                isComingAlone: isComingAlone,
-                plan: type,
-                subscriptorId: subscriptorId,
-                payment: charge,
-                validity: validity,
-                startsAt: _formattedStartsAt,
-                paymentSource: 'Stripe'
-            }
-        })
-        .then(data => resolve(data)).catch(error => reject(error))
-    });
-}
-
-const addSubscriptionFromPayPal = function(req) {
+const addSubscription = function (paymentSource, charge, req, res) {
     return new Promise((resolve, reject) => {
-        const adults = req.adultsAmount;
-        const kids = req.kidsAmount;
-        const isComingAlone = req.isComingAlone || false;
         const type = req.plan;
         const subscriptorId = req.subscriptorId;
         var startsAt = moment(req.startsAt).clone();
         startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
         const _formattedStartsAt = startsAt.toISOString();
         const validity = '' + calculateValidityDate(type, _formattedStartsAt);
-        const payment = req.payment;
         console.log('Validity: ', validity);
         console.log('Subscriptor: ', subscriptorId);
         client.mutate({
             mutation: CREATE_SUBSCRIPTION,
             variables: {
-                kids: adults,
-                adults: kids,
-                isComingAlone: isComingAlone,
+                kids: req.kidsAmount,
+                adults: req.adultsAmount,
+                isComingAlone: req.isComingAlone || false,
                 plan: type,
                 subscriptorId: subscriptorId,
-                payment: payment,
+                payment: charge,
                 validity: validity,
                 startsAt: _formattedStartsAt,
-                paymentSource: 'PayPal'
+                paymentSource: paymentSource
             }
         }).then(data => resolve(data)).catch(error => reject(error))
     })
 }
 
 module.exports = {
-    saveSubscription: async function (charge, req, res) {
-        return addSubscription(charge, req);
+    saveSubscriptionFromStripe: async function (charge, req, res) {
+        return addSubscription('Stripe', charge, req);
     },
-    saveSubscriptionFromPayPal: async function (req) {
-        return addSubscriptionFromPayPal(req);
+    saveSubscriptionFromPayPal: async function (req, res) {
+        return addSubscription('PayPal', req.payment, req);
     }
 }

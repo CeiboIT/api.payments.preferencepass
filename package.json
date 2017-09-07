@@ -1,5 +1,6 @@
 {
   "name": "preferencepass.payments.micro",
+  "description": "Preference Pass subscription services",
   "version": "0.0.0",
   "main": "src/app.js",
   "now": {
@@ -10,9 +11,12 @@
     ],
     "env": {
       "STRIPE_PRIVATE_KEY": "sk_test_ny6ghZN9qZRn50ShukKLMEee",
-      "MANDRILL_API_KEY": "7GZhk_UytExYjiiB9briAw",
       "GRAPHCOOL_SUBSCRIPTIONS_URI": "cj41c9u2zddol0177la66g30g"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:CeiboIT/api.payments.preferencepass.git"
   },
   "scripts": {
     "start": "micro -p ${PORT:-3030}",
@@ -29,7 +33,6 @@
     "apollo-client": "^1.9.0-1",
     "graphql-tag": "^2.4.2",
     "jsonwebtoken": "^7.4.1",
-    "mandrill-api": "^1.0.45",
     "micro": "latest",
     "micro-cors": "^0.0.4",
     "microrouter": "^2.1.1",
