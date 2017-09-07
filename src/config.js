@@ -1,19 +1,15 @@
 'use strict'
 const config = {};
 
+// allowed payment methods
+config.allowedPaymentMethods=["stripe","paypal"]
+
 // STRIPE config
 config.stripe = {};
 // ***** DEV *****
 config.stripe.apikey = process.env.STRIPE_PRIVATE_KEY || 'sk_test_ny6ghZN9qZRn50ShukKLMEee';
 // ***** PROD *****
 // config.stripe.apikey = process.env.STRIPE_PRIVATE_KEY || 'sk_test_ny6ghZN9qZRn50ShukKLMEee';
-
-// MANDRILL config
-config.mandrill = {};
-// ***** DEV *****
-config.mandrill.apikey = process.env.MANDRILL_API_KEY || '7GZhk_UytExYjiiB9briAw';
-// ***** PROD *****
-// config.mandrill.apikey = process.env.MANDRILL_API_KEY || '7GZhk_UytExYjiiB9briAw';
 
 // GRAPHCOOL config
 config.graphcool = {};

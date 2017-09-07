@@ -2,7 +2,6 @@
 const config = require('./config');
 const pricing = require('./pricing');
 const subscription = require('./subscription');
-const mailing = require('./mandrill');
 const stripe = require('stripe')(config.stripe.apikey);
 const uuidv4 = require('uuid/v4');
 
@@ -10,29 +9,31 @@ stripe.setTimeout(20000);
 
 module.exports = {
     createSubscription: async function (req, res) {
-        console.log('Request: ', req);
-        const customer = await createSourceForCostumer(req);
-        const charge = await createCharge(customer, req);
-        await mailing.sendMailForNewSubscription(req);
-        return subscription.saveSubscription(charge, req);
-        // return createCharge(customer, req);
-    },
-
-    createPayPalSubscription: async function (req, res) {
-        // The idea is act the same than with Stripe, with the only difference that the charge has been already done.
-        console.log('Request for PayPal');
-        await mailing.sendMailForNewSubscription(req);
-        return subscription.saveSubscriptionFromPayPal(req);
+        let subscriptionResult;
+        switch(req.type) {
+            case "paypal":
+                console.log('[PayPal] Request data: ', req.data);
+                subscriptionResult = await subscription.saveSubscriptionFromPayPal(req.data);
+                break;
+            case "stripe":
+                console.log('[Stripe] Request data: ', req.data);
+                const customer = await createSourceForCostumer(req.data);
+                const charge = await createCharge(customer, req.data);
+                subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req.data);
+                break;
+            default:
+                console.log('Can not create subscription');
+        }
+        return subscriptionResult;
     }
 }
 
 const createCharge = function (customer, req, res) {
-    console.log('Going to do charge');
     const amount = pricing.totalChargeAmount(req);
-    console.log('Amount to charge: ', amount);
-    console.log('Customer: ', customer.id);
-    console.log('Customer Resource', customer.default_source);
-    
+    console.log('[Stripe] Total charge amount in cents: ', amount);
+    console.log('[Stripe] Customer created: ', customer.id);
+    console.log('[Stripe] Customer default source', customer.default_source);
+
     return new Promise(function (resolve, reject) {
         stripe.charges.create({
             amount: amount,

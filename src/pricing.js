@@ -16,24 +16,12 @@ const prices = {
 };
 
 module.exports = {
-
-  // returns final price in cents in order to send it to STRIPE
+  // Returns final price in cents in order to send it to Stripe
   totalChargeAmount: function (req, res) {
-    console.log('Calculating total')
-    console.log(adultsAmount);
-    console.log(kidsAmount);
+    console.log('Total charge amount for request: ' , req)
     let pricing = prices[req.plan];
-    console.log(pricing);
-    if(!pricing) throw createError(400,'Invalid days amount value')
+    if(!pricing) throw createError(400,'Invalid plan value')
     const _amount = pricing.adultPrice * (req.adultsAmount + 1) + pricing.kidPrice * req.kidsAmount;
-    console.log(_amount);
     return _amount * 100;
-  },
-
-  // returns final price in dolars in order to show it in the subscription mail
-  finalPriceForEmail: function (req, res) {
-    let pricing = prices[req.plan];
-    return pricing.adultPrice * (req.adultsAmount + 1) + 
-      pricing.kidPrice * req.kidsAmount;
   }
 }
