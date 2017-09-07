@@ -15,6 +15,21 @@ const prices = {
   }
 };
 
+const pricesWithDiscount = {
+  OneDay: { 
+    adultPrice : 19, kidPrice: 9
+  },
+  FourDays: { 
+    adultPrice: 29, kidPrice: 14
+  },
+  SevenDays: { 
+    adultPrice : 39, kidPrice: 19
+  },
+  FourteenDays: {
+    adultPrice : 49, kidPrice: 24
+  }
+};
+
 module.exports = {
   // Returns final price in cents in order to send it to Stripe
   totalChargeAmount: function (req, res) {

@@ -12,6 +12,21 @@ const client = new ApolloClient({
   })
 });
 
+const GET_USER_DISCOUNTS_CODES = gql`
+    query getUserCodes($userId: ID!){
+        User(id: $userId) {
+            discountCodes(filter: {
+                used: false
+              }, first: 1) {
+                id
+              }
+
+        }
+    }
+
+`
+
+
 const CREATE_SUBSCRIPTION = gql`
     mutation NewPPSubscription(
         $adults: Int!,
@@ -90,6 +105,34 @@ function calculateValidityDate(Plan, startsAt){
     return  ''+ _formattedValidity;
 }
 
+const GetUserDisCountCode = async function (req) {
+    return new Promise((resolve, reject) => {
+        const _userId = req.subscriptorId;
+
+        client.query({
+            query: GET_USER_DISCOUNTS_CODES,
+            variables : {
+                userId: _userId
+            }
+        }).map(result => {
+            let resp = {
+                id: '',
+                hasDiscountCode: false
+            }
+            if(result.data.User && result.data.User.discountCodes && result.data.User.discountCodes.length) {
+                const _discount = result.data.User.discountCodes[0];
+                resp.hasDiscountCode = true;
+                resp.id = _discount.id;
+                resolve(resp);
+            }
+
+        })
+        .catch(err => {
+            reject(err);
+        })
+    })
+}
+
 const addSubscription = function (paymentSource, charge, req, res) {
     return new Promise((resolve, reject) => {
         const type = req.plan;
@@ -123,5 +166,9 @@ module.exports = {
     },
     saveSubscriptionFromPayPal: async function (req, res) {
         return addSubscription('PayPal', req.payment, req);
+    },
+
+    checkIfUserHasDiscount: async function(req, res) {
+        
     }
 }
