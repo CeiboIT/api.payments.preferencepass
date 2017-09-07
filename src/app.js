@@ -11,12 +11,12 @@ global.fetch = require('node-fetch');
 const postSubscription = async (req, res) => {
   console.log('[POST] Subscription for request:', req);
   console.log('[POST] Headers: ', JSON.stringify(req.headers));
-  //var token = req.headers.authorization.replace('Bearer ','');
-  //token = jwt.decode(token);
-  //console.log(token);
+  var token = req.headers.authorization.replace('Bearer ','');
+  token = jwt.decode(token);
+  console.log(token);
   try {
     let request = await json(req);  
-    //request.subscriptorId = token.userId;
+    request.subscriptorId = token.userId;
     if (allowedPaymentMethods.includes(request.type)) {
       const response = await payment.createSubscription(request);
       console.log('Checking response: ', response);
