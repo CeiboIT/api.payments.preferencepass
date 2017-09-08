@@ -13,10 +13,10 @@ const client = new ApolloClient({
 });
 
 const GET_USER_DISCOUNTS_CODES = gql`
-    query getUserCodes($userId: ID!){
+    query getUserCodes($userId: ID!, $used: Boolean!){
         User(id: $userId) {
             discountCodes(filter: {
-                used: false
+                used: $used
               }, first: 1) {
                 id
               }
@@ -140,7 +140,8 @@ const GetUserDisCountCode = async function (req, res) {
         client.query({
             query: GET_USER_DISCOUNTS_CODES,
             variables : {
-                userId: _userId
+                userId: _userId,
+                used: false
             }
         }).then(result => {
             let resp = {
@@ -152,9 +153,9 @@ const GetUserDisCountCode = async function (req, res) {
                 resp.hasDiscountCode = true;
                 resp.id = _discount.id;
                 console.log('Discount Code Result: ', resp);
-                resolve(resp);
+                
             }
-
+            resolve(resp);
         })
         .catch(err => {
             console.log(err);
@@ -186,7 +187,13 @@ const addSubscription = function (paymentSource, charge, req, res) {
                 startsAt: _formattedStartsAt,
                 paymentSource: paymentSource
             }
-        }).then(data => resolve(data)).catch(error => reject(error))
+        }).then(data => {
+            console.log('Subscription mutation response: ', data);
+            resolve(data);
+        }).catch(error => {
+            console.log(err)
+            reject(error)
+        })
     })
 }
 
