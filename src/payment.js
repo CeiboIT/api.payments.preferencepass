@@ -14,23 +14,27 @@ module.exports = {
         switch(req.type) {
             case "paypal":
                 console.log('[PayPal] Request data: ', req);
-                const _PayPalDiscount = await subscription.checkIfUserHasDiscount(req);
+                //const _PayPalDiscount = await subscription.checkIfUserHasDiscount(req);
                 subscriptionResult = await subscription.saveSubscriptionFromPayPal(req);
-                subscription.markDiscountCode(_PayPalDiscount.id);
+                /*if(_PayPalDiscount.hasDiscountCode) {             
+                    console.log(_PayPalDiscount);
+                    subscription.markDiscountCode(_PayPalDiscount);   
+                }*/
                 break;
             case "stripe":
                 console.log('[Stripe] Request data: ', req);
-                const discount = await subscription.checkIfUserHasDiscount(req);
+                //const discount = await subscription.checkIfUserHasDiscount(req);
                 const customer = await createSourceForCostumer(req);
                 const charge = await createCharge(customer, req, discount);
                 subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req, discount);
-                if(discount.hasDiscountCode) {
-                    subscription.markDiscountCode(discount.id);
-                }
+                /*if(discount.hasDiscountCode) {
+                    subscription.markDiscountCode(discount);
+                }*/
                 break;
             default:
                 console.log('Can not create subscription');
         }
+        console.log('Going to retreive subscription result');
         return subscriptionResult;
     }
 }

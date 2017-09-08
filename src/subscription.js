@@ -78,13 +78,14 @@ const CREATE_SUBSCRIPTION = gql`
 
 const markDiscountCodeAsUsed = async function(discount){
     return new Promise((resolve, reject) => {
+        console.log('Going to check user discount code');
         client.mutate({
             mutation: UPDATE_DISCOUNT_CODE,
             variables : {
                 discountId: discount.id,
                 used: true
             }
-        }).map(result => {
+        }).then(result => {
             const _resp = result.data.updateDiscountCode;
             resolve(_resp);
         })
@@ -134,13 +135,14 @@ function calculateValidityDate(Plan, startsAt){
 const GetUserDisCountCode = async function (req, res) {
     return new Promise((resolve, reject) => {
         const _userId = req.subscriptorId;
-
+        console.log(_userId);
+        console.log('Cheking user discount code');
         client.query({
             query: GET_USER_DISCOUNTS_CODES,
             variables : {
                 userId: _userId
             }
-        }).map(result => {
+        }).then(result => {
             let resp = {
                 id: '',
                 hasDiscountCode: false
@@ -149,6 +151,7 @@ const GetUserDisCountCode = async function (req, res) {
                 const _discount = result.data.User.discountCodes[0];
                 resp.hasDiscountCode = true;
                 resp.id = _discount.id;
+                console.log('Discount Code Result: ', resp);
                 resolve(resp);
             }
 
