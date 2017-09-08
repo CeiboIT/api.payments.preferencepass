@@ -23,9 +23,16 @@ const GET_USER_DISCOUNTS_CODES = gql`
 
         }
     }
-
 `
 
+const UPDATE_DISCOUNT_CODE = gql`
+    mutation UpdateDiscount($discountId: ID!, $used: Boolean!) {
+        updateDiscountCode(id: $discountId, used: $used) {
+            id
+        }
+
+    }
+`
 
 const CREATE_SUBSCRIPTION = gql`
     mutation NewPPSubscription(
@@ -69,6 +76,25 @@ const CREATE_SUBSCRIPTION = gql`
 }
 `;
 
+const markDiscountCodeAsUsed = async function(discount){
+    return new Promise((resolve, reject) => {
+        client.mutate({
+            mutation: UPDATE_DISCOUNT_CODE,
+            variables : {
+                discountId: discount.id,
+                used: true
+            }
+        }).map(result => {
+            const _resp = result.data.updateDiscountCode;
+            resolve(_resp);
+        })
+        .catch(err => {
+            console.log(err);
+            reject(err);
+        })
+    })
+}
+
 function calculateValidityDate(Plan, startsAt){
     const init = moment(startsAt).set({
         'hours': 0,
@@ -105,7 +131,7 @@ function calculateValidityDate(Plan, startsAt){
     return  ''+ _formattedValidity;
 }
 
-const GetUserDisCountCode = async function (req) {
+const GetUserDisCountCode = async function (req, res) {
     return new Promise((resolve, reject) => {
         const _userId = req.subscriptorId;
 
@@ -128,6 +154,7 @@ const GetUserDisCountCode = async function (req) {
 
         })
         .catch(err => {
+            console.log(err);
             reject(err);
         })
     })
@@ -169,6 +196,9 @@ module.exports = {
     },
 
     checkIfUserHasDiscount: async function(req, res) {
-        
+        return GetUserDisCountCode(req, res);
+    },
+    markDiscountCode: async function(discount) {
+        return markDiscountCodeAsUsed(discount)
     }
 }

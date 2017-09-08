@@ -10,16 +10,23 @@ stripe.setTimeout(20000);
 module.exports = {
     createSubscription: async function (req, res) {
         let subscriptionResult;
+        console.log('Trying to create subscription');
         switch(req.type) {
             case "paypal":
                 console.log('[PayPal] Request data: ', req.data);
+                const _PayPalDiscount = await subscription.checkIfUserHasDiscount(req.data);
                 subscriptionResult = await subscription.saveSubscriptionFromPayPal(req.data);
+                subscription.markDiscountCode(_PayPalDiscount.id);
                 break;
             case "stripe":
                 console.log('[Stripe] Request data: ', req.data);
+                const discount = await subscription.checkIfUserHasDiscount(req.data);
                 const customer = await createSourceForCostumer(req.data);
-                const charge = await createCharge(customer, req.data);
-                subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req.data);
+                const charge = await createCharge(customer, req.data, discount);
+                subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req.data, discount);
+                if(discount.hasDiscountCode) {
+                    subscription.markDiscountCode(discount.id);
+                }
                 break;
             default:
                 console.log('Can not create subscription');
@@ -28,8 +35,9 @@ module.exports = {
     }
 }
 
-const createCharge = function (customer, req, res) {
-    const amount = pricing.totalChargeAmount(req);
+const createCharge = function (customer, req, discount) {
+    // check if user has any kind of discount code with him 
+    const amount = pricing.totalChargeAmount(req, discount);
     console.log('[Stripe] Total charge amount in cents: ', amount);
     console.log('[Stripe] Customer created: ', customer.id);
     console.log('[Stripe] Customer default source', customer.default_source);
