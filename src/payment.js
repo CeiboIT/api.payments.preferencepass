@@ -13,17 +13,17 @@ module.exports = {
         console.log('Trying to create subscription');
         switch(req.type) {
             case "paypal":
-                console.log('[PayPal] Request data: ', req.data);
-                const _PayPalDiscount = await subscription.checkIfUserHasDiscount(req.data);
-                subscriptionResult = await subscription.saveSubscriptionFromPayPal(req.data);
+                console.log('[PayPal] Request data: ', req);
+                const _PayPalDiscount = await subscription.checkIfUserHasDiscount(req);
+                subscriptionResult = await subscription.saveSubscriptionFromPayPal(req);
                 subscription.markDiscountCode(_PayPalDiscount.id);
                 break;
             case "stripe":
-                console.log('[Stripe] Request data: ', req.data);
-                const discount = await subscription.checkIfUserHasDiscount(req.data);
-                const customer = await createSourceForCostumer(req.data);
-                const charge = await createCharge(customer, req.data, discount);
-                subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req.data, discount);
+                console.log('[Stripe] Request data: ', req);
+                const discount = await subscription.checkIfUserHasDiscount(req);
+                const customer = await createSourceForCostumer(req);
+                const charge = await createCharge(customer, req, discount);
+                subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req, discount);
                 if(discount.hasDiscountCode) {
                     subscription.markDiscountCode(discount.id);
                 }
