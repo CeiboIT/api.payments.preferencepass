@@ -129,6 +129,7 @@ function calculateValidityDate(Plan, startsAt){
         validity = validity.hours(23).minutes(59).seconds(59);
     }
     const _formattedValidity = validity.toISOString();
+    console.log('Formatted Validity: ', '' + _formattedValidity)
     return  ''+ _formattedValidity;
 }
 
@@ -142,7 +143,8 @@ const GetUserDisCountCode = async function (req, res) {
             variables : {
                 userId: _userId,
                 used: false
-            }
+            },
+            fetchPolicy: 'network-only'
         }).then(result => {
             let resp = {
                 id: '',

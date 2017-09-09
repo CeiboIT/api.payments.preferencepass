@@ -34,7 +34,16 @@ module.exports = {
   // Returns final price in cents in order to send it to Stripe
   totalChargeAmount: function (req, discount) {
     console.log('Total charge amount for request: ' , req)
-    let pricing = (discount && discount.hasDiscount) ? pricesWithDiscount[req.plan] : prices[req.plan];
+    console.log(discount);
+    let pricing;
+    if(discount && discount.hasDiscountCode) {
+        pricing = pricesWithDiscount[req.plan]
+    } else {
+      pricing = prices[req.plan];
+    }
+
+    console.log('Pricing to use: ', pricing);
+
     if(!pricing) throw createError(400,'Invalid plan value')
     const _amount = pricing.adultPrice * (req.adultsAmount + 1) + pricing.kidPrice * req.kidsAmount;
     return _amount * 100;
