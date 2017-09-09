@@ -9,7 +9,7 @@ config.stripe = {};
 // ***** DEV *****
 config.stripe.apikey = process.env.STRIPE_PRIVATE_KEY || 'sk_test_ny6ghZN9qZRn50ShukKLMEee';
 // ***** PROD *****
-// config.stripe.apikey = process.env.STRIPE_PRIVATE_KEY || 'sk_test_ny6ghZN9qZRn50ShukKLMEee';
+// config.stripe.apikey = process.env.STRIPE_PRIVATE_KEY || 'sk_live_BYfvgcYF9m4p4qycvpM0SOvw';
 
 // GRAPHCOOL config
 config.graphcool = {};
