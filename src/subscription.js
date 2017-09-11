@@ -122,18 +122,18 @@ function calculateValidityDate(Plan, startsAt){
     }
 
     if(validity){
-        console.log('Validity: ', validity);
+        console.log('Validity:', validity);
         validity = validity.hours(23).minutes(59).seconds(59);
     }
     const _formattedValidity = validity.toISOString();
-    console.log('Formatted Validity: ', '' + _formattedValidity)
-    return  ''+ _formattedValidity;
+    console.log('Formatted Validity:', _formattedValidity)
+    return  _formattedValidity;
 }
 
 const GetUserDisCountCode = async function (req, res) {
     return new Promise((resolve, reject) => {
         const _userId = req.subscriptorId;
-        console.log(_userId);
+        console.log('User ID:', _userId);
         console.log('Cheking user discount code');
         client.query({
             query: GET_USER_DISCOUNTS_CODES,
@@ -151,7 +151,7 @@ const GetUserDisCountCode = async function (req, res) {
                 const _discount = result.data.User.discountCodes[0];
                 resp.hasDiscountCode = true;
                 resp.id = _discount.id;
-                console.log('Discount Code Result: ', resp);
+                console.log('Discount Code Result:', resp);
             }
             resolve(resp);
         })
@@ -185,7 +185,7 @@ const addSubscription = function (paymentSource, charge, req, res) {
                 paymentSource: paymentSource
             }
         }).then(data => {
-            console.log('Subscription mutation response: ', data);
+            console.log('Subscription mutation response:', data);
             resolve(data);
         }).catch(err => {
             console.log(err)

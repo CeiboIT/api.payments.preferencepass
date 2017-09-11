@@ -13,11 +13,11 @@ module.exports = {
         let discount = await subscription.checkIfUserHasDiscount(req);
         switch(req.type) {
             case "paypal":
-                console.log('[PayPal] Request data:', req);
+                console.log('[PayPal] Starting subscription request');
                 subscriptionResult = await subscription.saveSubscriptionFromPayPal(req);
                 break;
             case "stripe":
-                console.log('[Stripe] Request data:', req);
+                console.log('[Stripe] Starting subscription request');
                 const customer = await createSourceForCostumer(req);
                 const charge = await createCharge(customer, req, discount);
                 subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req, discount);

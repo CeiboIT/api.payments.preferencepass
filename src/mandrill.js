@@ -35,7 +35,7 @@ const sendMailToCustomer = function (req, customerEmail, discount, res) {
                 "vars": [
                     {
                         "name": "adultsAmount",
-                        "content": req.adultsAmount + 1
+                        "content": req.adultsAmount
                     },
                     {
                         "name": "kidsAmount",
@@ -70,10 +70,10 @@ const sendMailToCustomer = function (req, customerEmail, discount, res) {
             "send_at": moment()
             },
             function(result) {
-                console.log(result);
+                console.log('[Mandrill] Email successfully sent to customer:', result);
                 resolve(result);
             }, function(e) {
-                console.log('A mandrill error occurred: ' + e.name + ' - ' + e.message);
+                console.log('[Mandrill] An error occurred: ' + e.name + ' - ' + e.message);
                 //resolve promise anyway in case of error
                 resolve(e);
             }
@@ -99,7 +99,7 @@ const sendMailToPreferencePass = function (req, customerEmail, discount, res) {
                 "vars": [
                     {
                         "name": "adultsAmount",
-                        "content": req.adultsAmount + 1
+                        "content": req.adultsAmount
                     },
                     {
                         "name": "kidsAmount",
@@ -138,10 +138,10 @@ const sendMailToPreferencePass = function (req, customerEmail, discount, res) {
             "send_at": moment()
             },
             function(result) {
-                console.log(result);
+                console.log('[Mandrill] Email successfully sent to ppass:', result);
                 resolve(result);
             }, function(e) {
-                console.log('A mandrill error occurred: ' + e.name + ' - ' + e.message);
+                console.log('[Mandrill] An error occurred: ' + e.name + ' - ' + e.message);
                 //resolve promise anyway in case of error
                 resolve(e);
             }
