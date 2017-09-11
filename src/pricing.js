@@ -41,11 +41,9 @@ module.exports = {
     } else {
       pricing = prices[req.plan];
     }
-
     console.log('Pricing to use: ', pricing);
-
-    if(!pricing) throw createError(400,'Invalid plan value')
-    const _amount = pricing.adultPrice * (req.adultsAmount + 1) + pricing.kidPrice * req.kidsAmount;
+    if(!pricing) throw createError(400,'Invalid plan value: '+ req.plan);
+    const _amount = pricing.adultPrice * (req.adultsAmount) + pricing.kidPrice * req.kidsAmount;
     return _amount * 100;
   },
 
@@ -57,7 +55,7 @@ module.exports = {
     } else {
       pricing = prices[req.plan];
     }
-    return pricing.adultPrice * (req.adultsAmount + 1) + pricing.kidPrice * req.kidsAmount;
+    return pricing.adultPrice * (req.adultsAmount) + pricing.kidPrice * req.kidsAmount;
   }
   
 }

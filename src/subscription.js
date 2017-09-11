@@ -38,7 +38,6 @@ const CREATE_SUBSCRIPTION = gql`
     mutation NewPPSubscription(
         $adults: Int!,
         $kids: Int!,
-        $isComingAlone: Boolean,
         $plan: String!,
         $subscriptorId: ID!,
         $payment: Json!,
@@ -49,7 +48,6 @@ const CREATE_SUBSCRIPTION = gql`
     createPPSubscription(
         adults: $adults,
         kids: $kids,
-        isComingAlone: $isComingAlone,
         plan: $plan,
         userId: $subscriptorId,
         payment: $payment,
@@ -64,7 +62,6 @@ const CREATE_SUBSCRIPTION = gql`
         companions {
             id
         }
-        isComingAlone
         plan
         user {
             id
@@ -107,7 +104,6 @@ function calculateValidityDate(Plan, startsAt){
 
     var validity = init.clone();
     validity = validity.hours(23).minutes(59).seconds(59);
-    var formattedDate = '';
     switch(Plan){
         case('OneDay'):
             validity.add(1, 'day');
@@ -156,7 +152,6 @@ const GetUserDisCountCode = async function (req, res) {
                 resp.hasDiscountCode = true;
                 resp.id = _discount.id;
                 console.log('Discount Code Result: ', resp);
-                
             }
             resolve(resp);
         })
@@ -182,7 +177,6 @@ const addSubscription = function (paymentSource, charge, req, res) {
             variables: {
                 kids: req.kidsAmount,
                 adults: req.adultsAmount,
-                isComingAlone: req.isComingAlone || false,
                 plan: type,
                 subscriptorId: subscriptorId,
                 payment: charge,
@@ -193,9 +187,9 @@ const addSubscription = function (paymentSource, charge, req, res) {
         }).then(data => {
             console.log('Subscription mutation response: ', data);
             resolve(data);
-        }).catch(error => {
+        }).catch(err => {
             console.log(err)
-            reject(error)
+            reject(err)
         })
     })
 }
