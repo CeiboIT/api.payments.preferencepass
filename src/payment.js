@@ -33,7 +33,7 @@ module.exports = {
             subscription.markDiscountCode(discount);
         }
         console.log('Going to send subscription email');
-        await mailing.sendMailForNewSubscription(req);
+        await mailing.sendMailForNewSubscription(req, discount);
         return subscriptionResult;
     }
 }
