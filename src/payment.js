@@ -3,6 +3,7 @@ const config = require('./config');
 const pricing = require('./pricing');
 const subscription = require('./subscription');
 const stripe = require('stripe')(config.stripe.apikey);
+const mailing = require('./mandrill');
 const uuidv4 = require('uuid/v4');
 
 stripe.setTimeout(20000);
@@ -16,7 +17,6 @@ module.exports = {
             case "paypal":
                 console.log('[PayPal] Request data: ', req);
                 subscriptionResult = await subscription.saveSubscriptionFromPayPal(req);
-                
                 break;
             case "stripe":
                 console.log('[Stripe] Request data: ', req);
@@ -27,11 +27,13 @@ module.exports = {
             default:
                 console.log('Can not create subscription');
         }
-        console.log('Going to retreive subscription result');
+        console.log('Going to retrieve subscription result');
         if(discount.hasDiscountCode) {
             console.log('Marking discount code as used')
             subscription.markDiscountCode(discount);
         }
+        console.log('Going to send subscription email');
+        await mailing.sendMailForNewSubscription(req);
         return subscriptionResult;
     }
 }

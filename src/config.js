@@ -18,4 +18,11 @@ config.graphcool.uri = process.env.GRAPHCOOL_SUBSCRIPTIONS_URI || 'cj41c9u2zddol
 // ***** PROD *****
 //config.graphcool.uri = process.env.GRAPHCOOL_SUBSCRIPTIONS_URI || 'cj76588cy10aq0133eli0nu97';
 
+// MANDRILL config
+config.mandrill = {};
+// ***** DEV *****
+config.mandrill.apikey = process.env.MANDRILL_API_KEY || '7GZhk_UytExYjiiB9briAw';
+// ***** PROD *****
+// config.mandrill.apikey = process.env.MANDRILL_API_KEY || '7GZhk_UytExYjiiB9briAw';
+
 module.exports = config;

@@ -11,7 +11,8 @@
     ],
     "env": {
       "STRIPE_PRIVATE_KEY": "sk_test_ny6ghZN9qZRn50ShukKLMEee",
-      "GRAPHCOOL_SUBSCRIPTIONS_URI": "cj41c9u2zddol0177la66g30g"
+      "GRAPHCOOL_SUBSCRIPTIONS_URI": "cj41c9u2zddol0177la66g30g",
+      "MANDRILL_API_KEY": "7GZhk_UytExYjiiB9briAw"
     }
   },
   "repository": {
@@ -33,6 +34,7 @@
     "apollo-client": "1.9.2",
     "graphql-tag": "^2.4.2",
     "jsonwebtoken": "^7.4.1",
+    "mandrill-api": "^1.0.45",
     "micro": "latest",
     "micro-cors": "^0.0.4",
     "microrouter": "^2.1.1",
