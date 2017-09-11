@@ -7,17 +7,17 @@ const pricing = require('./pricing');
 const DATE_FORMAT = "MMMM DD YYYY";
 
 module.exports = {
-    sendMailForNewSubscription: async function (req, discount, res) {
-        if(req.customerEmail) {
-            await sendMailToCustomer(req, discount);
-            return await sendMailToPreferencePass(req, discount);
+    sendMailForNewSubscription: async function (req, customerEmail, discount, res) {
+        if(customerEmail) {
+            await sendMailToCustomer(req, customerEmail, discount);
+            return await sendMailToPreferencePass(req, customerEmail, discount);
         } else {
             console.log("Unable to send subscription email - customerEmail missing");
         }
     }
 }
 
-const sendMailToCustomer = function (req, discount, res) {
+const sendMailToCustomer = function (req, customerEmail, discount, res) {
     return new Promise(function (resolve, reject) {
         const template_content = [{
             "name": "name",
@@ -28,10 +28,10 @@ const sendMailToCustomer = function (req, discount, res) {
             "from_email": "subscriptions@preferencepass.com",
             "from_name": "Preference Pass Subscriptions",
             "to": [{
-                "email": req.customerEmail
+                "email": customerEmail
             }],
             "merge_vars": [{
-                "rcpt": req.customerEmail,
+                "rcpt": customerEmail,
                 "vars": [
                     {
                         "name": "adultsAmount",
@@ -81,7 +81,7 @@ const sendMailToCustomer = function (req, discount, res) {
     })
 }
 
-const sendMailToPreferencePass = function (req, discount, res) {
+const sendMailToPreferencePass = function (req, customerEmail, discount, res) {
     return new Promise(function (resolve, reject) {
         const template_content = [{
             "name": "name",
@@ -123,7 +123,7 @@ const sendMailToPreferencePass = function (req, discount, res) {
                     },
                     {
                         "name": "customerEmail",
-                        "content": req.customerEmail
+                        "content": customerEmail
                     }
                 ]}
             ]

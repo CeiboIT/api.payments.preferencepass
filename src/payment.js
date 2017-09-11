@@ -33,7 +33,7 @@ module.exports = {
             subscription.markDiscountCode(discount);
         }
         console.log('Going to send subscription email');
-        await mailing.sendMailForNewSubscription(req, discount);
+        await mailing.sendMailForNewSubscription(req, getCustomerEmail(subscriptionResult), discount);
         return subscriptionResult;
     }
 }
@@ -78,4 +78,13 @@ const createSourceForCostumer = function (req, res) {
             }
         });
     });
+}
+
+const getCustomerEmail = (req, res) => {
+    if (req && req.data && req.data.createPPSubscription) {
+        console.log('Retrieving user email for subscription: ', req.data.createPPSubscription.id);
+        console.log('User: ', req.data.createPPSubscription.user);
+        return req.data.createPPSubscription.user.email
+    }
+    return;
 }

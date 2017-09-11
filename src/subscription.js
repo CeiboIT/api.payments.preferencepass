@@ -68,6 +68,7 @@ const CREATE_SUBSCRIPTION = gql`
         plan
         user {
             id
+            email
         }
         reservations {
             id
