@@ -22,7 +22,10 @@ config.graphcool.uri = process.env.GRAPHCOOL_SUBSCRIPTIONS_URI || 'cj41c9u2zddol
 config.mandrill = {};
 // ***** DEV *****
 config.mandrill.apikey = process.env.MANDRILL_API_KEY || '7GZhk_UytExYjiiB9briAw';
+config.mandrill.ownerEmail = process.env.MANDRILL_OWNER_EMAIL || 'ep@preferencepass.com';
+
 // ***** PROD *****
 // config.mandrill.apikey = process.env.MANDRILL_API_KEY || '7GZhk_UytExYjiiB9briAw';
+// config.mandrill.mail = process.env.MANDRILL_OWNER_EMAIL || 'pt@preferencepass.com';
 
 module.exports = config;

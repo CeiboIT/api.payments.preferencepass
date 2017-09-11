@@ -92,10 +92,10 @@ const sendMailToPreferencePass = function (req, discount, res) {
             "from_email": "subscriptions@preferencepass.com",
             "from_name": "Preference Pass Subscriptions",
             "to": [{
-                "email": "pt@preferencepass.com"
+                "email": config.mandrill.ownerEmail
             }],
             "merge_vars": [{
-                "rcpt": "pt@preferencepass.com",
+                "rcpt": config.mandrill.ownerEmail,
                 "vars": [
                     {
                         "name": "adultsAmount",
