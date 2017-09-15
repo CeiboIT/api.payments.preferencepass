@@ -1,84 +1,21 @@
 'use strict';
-const createError = require('micro').createError
-const {ApolloClient} = require('apollo-client')
+const { ApolloClient } = require('apollo-client');
 const createNetworkInterface = require('apollo-client').createNetworkInterface;
 const moment = require('moment');
-const gql = require('graphql-tag');
 const config = require('./config');
- 
+const queries = require('./queries'); 
+
 const client = new ApolloClient({
   networkInterface: createNetworkInterface({
     uri : 'https://api.graph.cool/simple/v1/' + config.graphcool.uri
   })
 });
 
-const GET_USER_DISCOUNTS_CODES = gql`
-    query getUserCodes($userId: ID!, $used: Boolean!){
-        User(id: $userId) {
-            discountCodes(filter: {
-                used: $used
-              }, first: 1) {
-                id
-              }
-
-        }
-    }
-`
-
-const UPDATE_DISCOUNT_CODE = gql`
-    mutation UpdateDiscount($discountId: ID!, $used: Boolean!) {
-        updateDiscountCode(id: $discountId, used: $used) {
-            id
-        }
-
-    }
-`
-
-const CREATE_SUBSCRIPTION = gql`
-    mutation NewPPSubscription(
-        $adults: Int!,
-        $kids: Int!,
-        $plan: String!,
-        $subscriptorId: ID!,
-        $payment: Json!,
-        $startsAt: DateTime!,
-        $paymentSource: String!,
-        $validity: DateTime!
-    ) {
-    createPPSubscription(
-        adults: $adults,
-        kids: $kids,
-        plan: $plan,
-        userId: $subscriptorId,
-        payment: $payment,
-        validity: $validity,
-        startsAt: $startsAt
-        paymentSource: $paymentSource
-    ) {
-        id
-        validity
-        kids
-        adults
-        companions {
-            id
-        }
-        plan
-        user {
-            id
-            email
-        }
-        reservations {
-            id
-        }
-    }
-}
-`;
-
-const markDiscountCodeAsUsed = async function(discount){
+const markDiscountCodeAsUsed = async function (discount){
     return new Promise((resolve, reject) => {
         console.log('Going to check user discount code');
         client.mutate({
-            mutation: UPDATE_DISCOUNT_CODE,
+            mutation: queries.UPDATE_DISCOUNT_CODE,
             variables : {
                 discountId: discount.id,
                 used: true
@@ -136,7 +73,7 @@ const GetUserDisCountCode = async function (req, res) {
         console.log('User ID:', _userId);
         console.log('Cheking user discount code');
         client.query({
-            query: GET_USER_DISCOUNTS_CODES,
+            query: queries.GET_USER_DISCOUNTS_CODES,
             variables : {
                 userId: _userId,
                 used: false
@@ -173,7 +110,7 @@ const addSubscription = function (paymentSource, charge, req, res) {
         console.log('Validity: ', validity);
         console.log('Subscriptor: ', subscriptorId);
         client.mutate({
-            mutation: CREATE_SUBSCRIPTION,
+            mutation: queries.CREATE,
             variables: {
                 kids: req.kidsAmount,
                 adults: req.adultsAmount,

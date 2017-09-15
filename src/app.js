@@ -1,21 +1,21 @@
 'use strict'
+global.fetch = require('node-fetch');
 const { json, send }  = require('micro');
 const { router, post, get } = require('microrouter');
-const payment = require('./payment');
 const jwt = require('jsonwebtoken');
 const microCors = require('micro-cors');
 const cors = microCors();
+const payment = require('./payment');
+const user = require('./user');
 const allowedPaymentMethods = require('./config').allowedPaymentMethods;
-global.fetch = require('node-fetch');
+
 
 const postSubscription = async (req, res) => {
   console.log('[POST] Incoming request:', req.method, req.url);
   console.log('[POST] Headers:', JSON.stringify(req.headers));
-  var token = req.headers.authorization.replace('Bearer ','');
-  token = jwt.decode(token);
   try {
     let request = await json(req);  
-    request.subscriptorId = token.userId;
+    request.subscriptorId = user.getID(req);
     console.log('[POST] New subscription for request:', request);
     if (allowedPaymentMethods.includes(request.type)) {
       const response = await payment.createSubscription(request);
