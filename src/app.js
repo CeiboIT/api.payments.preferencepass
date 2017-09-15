@@ -9,7 +9,6 @@ const payment = require('./payment');
 const user = require('./user');
 const allowedPaymentMethods = require('./config').allowedPaymentMethods;
 
-
 const postSubscription = async (req, res) => {
   console.log('[POST] Incoming request:', req.method, req.url);
   console.log('[POST] Headers:', JSON.stringify(req.headers));

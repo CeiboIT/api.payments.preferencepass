@@ -1,9 +1,9 @@
 'use strict';
 const { ApolloClient } = require('apollo-client');
 const createNetworkInterface = require('apollo-client').createNetworkInterface;
-const moment = require('moment');
 const config = require('./config');
-const queries = require('./queries'); 
+const queries = require('./queries');
+const validity = require('./validity');
 
 const client = new ApolloClient({
   networkInterface: createNetworkInterface({
@@ -31,51 +31,13 @@ const markDiscountCodeAsUsed = async function (discount){
     })
 }
 
-function calculateValidityDate(Plan, startsAt){
-    const init = moment(startsAt).set({
-        'hours': 0,
-        'minutes': 0,
-        'seconds': 0,
-        'milliseconds': 0
-    });
-
-    var validity = init.clone();
-    validity = validity.hours(23).minutes(59).seconds(59);
-    switch(Plan){
-        case('OneDay'):
-            validity.add(1, 'day');
-            break;
-        case('FourDays'):
-            validity.add(4, 'day');
-            break;
-        case('SevenDays'):
-            validity.add(7, 'day');
-            break;
-        case('FourteenDays'):
-            validity.add(14, 'day');
-        break;
-        default:
-            validity = null;
-    }
-
-    if(validity){
-        console.log('Validity:', validity);
-        validity = validity.hours(23).minutes(59).seconds(59);
-    }
-    const _formattedValidity = validity.toISOString();
-    console.log('Formatted Validity:', _formattedValidity)
-    return  _formattedValidity;
-}
-
-const GetUserDisCountCode = async function (req, res) {
+const getUserDisCountCode = async function (req, res) {
     return new Promise((resolve, reject) => {
-        const _userId = req.subscriptorId;
-        console.log('User ID:', _userId);
-        console.log('Cheking user discount code');
+        console.log('Checking user discount code for userID:', req.subscriptorId);
         client.query({
             query: queries.GET_USER_DISCOUNTS_CODES,
             variables : {
-                userId: _userId,
+                userId: req.subscriptorId,
                 used: false
             },
             fetchPolicy: 'network-only'
@@ -88,7 +50,7 @@ const GetUserDisCountCode = async function (req, res) {
                 const _discount = result.data.User.discountCodes[0];
                 resp.hasDiscountCode = true;
                 resp.id = _discount.id;
-                console.log('Discount Code Result:', resp);
+                console.log('Discount Code Response:', resp);
             }
             resolve(resp);
         })
@@ -101,24 +63,17 @@ const GetUserDisCountCode = async function (req, res) {
 
 const addSubscription = function (paymentSource, charge, req, res) {
     return new Promise((resolve, reject) => {
-        const type = req.plan;
-        const subscriptorId = req.subscriptorId;
-        var startsAt = moment(req.startsAt).clone();
-        startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
-        const _formattedStartsAt = startsAt.toISOString();
-        const validity = '' + calculateValidityDate(type, _formattedStartsAt);
-        console.log('Validity: ', validity);
-        console.log('Subscriptor: ', subscriptorId);
+        console.log('Creating subscription for userID: ', req.subscriptorId);
         client.mutate({
-            mutation: queries.CREATE,
+            mutation: queries.CREATE_SUBSCRIPTION,
             variables: {
                 kids: req.kidsAmount,
                 adults: req.adultsAmount,
-                plan: type,
-                subscriptorId: subscriptorId,
+                plan: req.plan,
+                subscriptorId: req.subscriptorId,
                 payment: charge,
-                validity: validity,
-                startsAt: _formattedStartsAt,
+                startsAt: validity.from(req.startsAt),
+                validity: validity.to(req.plan, req.startsAt),
                 paymentSource: paymentSource
             }
         }).then(data => {
@@ -140,9 +95,9 @@ module.exports = {
     },
 
     checkIfUserHasDiscount: async function(req, res) {
-        return GetUserDisCountCode(req, res);
+        return getUserDisCountCode(req, res);
     },
     markDiscountCode: async function(discount) {
-        return markDiscountCodeAsUsed(discount)
+        return markDiscountCodeAsUsed(discount);
     }
 }

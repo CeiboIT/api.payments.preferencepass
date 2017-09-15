@@ -2,10 +2,11 @@
 const config = require('./config');
 const pricing = require('./pricing');
 const subscription = require('./subscription');
+const mailing = require('./mandrill');
+
+const uuidv4 = require('uuid/v4');
 const stripe = require('stripe')(config.stripe.apikey);
 stripe.setTimeout(20000);
-const mailing = require('./mandrill');
-const uuidv4 = require('uuid/v4');
 
 module.exports = {
     createSubscription: async function (req, res) {
