@@ -11,7 +11,10 @@ module.exports = {
     createSubscription: async function (req, res) {
         let subscriptionResult;
         console.log('Trying to create subscription');
-        let discount = await subscription.checkIfUserHasDiscount(req);
+        let discount
+        if(req.subscriptorId) {
+            discount = await subscription.checkIfUserHasDiscount(req);
+        }
         switch(req.type) {
             case "paypal":
                 console.log('[PayPal] Request data: ', req);
@@ -20,7 +23,15 @@ module.exports = {
                 break;
             case "stripe":
                 console.log('[Stripe] Request data: ', req);
-                const customer = await createSourceForCostumer(req);
+                let customerData;
+                if(req.subscriptorId) {
+                    customerData = await subscription.getUserIdentity(req.subscriptorId);
+                } else {
+                    customerData = {
+                        email: req.email
+                    }
+                }
+                const customer = await createSourceForCostumer(req, customerData);
                 const charge = await createCharge(customer, req, discount);
                 subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req, discount);
                 break;
@@ -28,7 +39,7 @@ module.exports = {
                 console.log('Can not create subscription');
         }
         console.log('Going to retreive subscription result');
-        if(discount.hasDiscountCode) {
+        if(discount && discount.hasDiscountCode) {
             console.log('Marking discount code as used')
             subscription.markDiscountCode(discount);
         }
@@ -61,12 +72,29 @@ const createCharge = function (customer, req, discount) {
     });
 }
 
-const createSourceForCostumer = function (req, res) {
+const createSourceForCostumer = function (req, customerData) {
     return new Promise(function (resolve, reject) {
-        stripe.customers.create({
+        let _payload = {
             description: 'Customer for Preference Pass',
-            source: req.cardToken
-        }, {
+            source: req.cardToken,
+            email: customerData.email,
+            metadata: {
+                plan: req.plan,
+                kids: req.kidsAmount,
+                adults: req.adultsAmount
+            }
+        }
+        if(customerData.givenName) {
+            _payload.metadata.givenName = customerData.givenName
+        }
+        if(customerData.name) {
+            _payload.metadata.name = customerData.name
+        }
+        if(customerData.familyName) {
+            _payload.metadata.familyName = customerData.familyName
+        }
+
+        stripe.customers.create(_payload, {
             idempotency_key: uuidv4()
        }, function (err, customer) {
             if (err) {
