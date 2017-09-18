@@ -12,13 +12,13 @@ module.exports = {
     createSubscription: async function (req, res) {
         let subscriptionResult;
         console.log('Trying to create subscription');
-        let discount = await discounts.getDiscount(req);
+        let discount = await discountsService.getDiscount(req);
         console.log('Got discount', discount);
         switch(req.type) {
             case "paypal":
                 console.log('[PayPal] Request data: ', req);
-                subscriptionResult = await subscription.saveSubscriptionFromPayPal(req);
-                
+                subscriptionResult = await subscription.saveSubscriptionFromPayPal(req, discount);
+                console.log('Subscription Result obtained in PayPal', subscriptionResult);
                 break;
             case "stripe":
                 console.log('[Stripe] Request data: ', req);
@@ -33,6 +33,7 @@ module.exports = {
                 const customer = await createSourceForCostumer(req, customerData);
                 const charge = await createCharge(customer, req, discount);
                 subscriptionResult = await subscription.saveSubscriptionFromStripe(charge, req, discount);
+                console.log('Subscription Result obtained in Stripe', subscriptionResult);
                 break;
             default:
                 console.log('Can not create subscription');

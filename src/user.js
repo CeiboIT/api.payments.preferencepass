@@ -11,17 +11,3 @@ const client = new ApolloClient({
     uri : 'https://api.graph.cool/simple/v1/' + config.graphcool.uri
   })
 });
-
-
-const GET_USER_BASIC_DATA = gql`
-query GetUser($userId: ID!) {
-    User(id: $userId) {
-        id
-        email
-        givenName
-        name
-        familyName
-    }
-}
-`
-

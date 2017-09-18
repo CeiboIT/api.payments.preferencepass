@@ -14,6 +14,18 @@ const client = new ApolloClient({
 });
 
 
+const GET_USER_BASIC_DATA = gql`
+    query GetUser($userId: ID!) {
+        User(id: $userId) {
+            id
+            email
+            givenName
+            name
+            familyName
+        }
+    }
+`
+
 const CHECK_SUBSCRIPTIONS_BY_EMAIL = gql`
     query CheckSubscriptionsByEmail($email: String! ) {
         allPPSubscriptions(filter:{
@@ -140,7 +152,7 @@ const CREATE_SUBSCRIPTION_WITH_DISCOUNT_CODE = gql`
             payment: $payment,
             validity: $validity,
             startsAt: $startsAt,
-            paymentSource: $paymentSource.
+            paymentSource: $paymentSource,
             discountCodeId: $discountCodeId
         ) {
             id
@@ -345,12 +357,12 @@ function createSubscriptionWithUser(req) {
         mutation = client.mutate({
             mutation: CREATE_SUBSCRIPTION_WITH_DISCOUNT_CODE,
             variables: {
-                kids: req.kidsAmount,
-                adults: req.adultsAmount,
+                kids: req.kids,
+                adults: req.adults,
                 isComingAlone: req.isComingAlone || false,
-                plan: req.type,
+                plan: req.plan,
+                payment: req.payment,
                 subscriptorId: req.subscriptorId,
-                payment: req.charge,
                 validity: req.validity,
                 startsAt: req.startsAt,
                 paymentSource: req.paymentSource,
@@ -361,10 +373,11 @@ function createSubscriptionWithUser(req) {
         mutation = client.mutate({
             mutation: CREATE_SUBSCRIPTION,
             variables: {
-                kids: req.kidsAmount,
-                adults: req.adultsAmount,
+                kids: req.kids,
+                adults: req.adults,
                 isComingAlone: req.isComingAlone || false,
-                plan: type,
+                plan: req.plan,
+                payment: req.payment,
                 subscriptorId: subscriptorId,
                 payment: charge,
                 validity: validity,
@@ -388,11 +401,11 @@ function createSubscriptionWithoutUser(req) {
             mutation = client.mutate({
                 mutation: CREATE_SUBSCRIPTION_WITH_DISCOUNT_AND_WITHOUT_USER,
                 variables: {
-                    kids: req.kidsAmount,
-                    adults: req.adultsAmount,
+                    kids: req.kids,
+                    adults: req.adults,
                     isComingAlone: req.isComingAlone || false,
-                    plan: req.type,
-                    payment: req.charge,
+                    plan: req.plan,
+                    payment: req.payment,
                     validity: req.validity,
                     startsAt: req.startsAt,
                     email: req.email,
@@ -404,11 +417,11 @@ function createSubscriptionWithoutUser(req) {
             mutation = client.mutate({
                 mutation: CREATE_SUBSCRIPTION_WITHOUT_USER,
                 variables: {
-                    kids: req.kidsAmount,
-                    adults: req.adultsAmount,
+                    kids: req.kids,
+                    adults: req.adults,
                     isComingAlone: req.isComingAlone || false,
-                    plan: req.type,
-                    payment: req.charge,
+                    plan: req.plan,
+                    payment: req.payment,
                     validity: req.validity,
                     startsAt: req.startsAt,
                     email: req.email,
@@ -433,6 +446,7 @@ function createSubscription(req) {
         // Cases to handle.
         // case 1: subscriptorId exists
         let mutation;
+        console.log('Create subscription request: ', req);
         if(req.subscriptorId) {
             mutation = createSubscriptionWithUser(req)
         } else {
@@ -445,6 +459,7 @@ function createSubscription(req) {
                 //the discount code has to be added to subscription, user and marked as used
                 discountsService.markDiscountCodeAsUsed(req, subscription.id);
             }
+            console.log('Resolving subscription creation');
             resolve(subscription);
         })
         .catch(err => {
@@ -453,22 +468,21 @@ function createSubscription(req) {
     });
 }
 
-const addSubscription = function (paymentSource, charge, discount) {
+const addSubscription = function (paymentSource, charge, req, discount) {
     return new Promise((resolve, reject) => {
         const type = req.plan;
         var startsAt = moment(req.startsAt).clone();
         startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
         const _formattedStartsAt = startsAt.toISOString();
         const validity = '' + calculateValidityDate(type, _formattedStartsAt);
-
         const _validDiscount = discountsService.isValid(discount);
-        
+        console.log('Charge', charge);
         let _request = {
             kids: req.kidsAmount,
             adults: req.adultsAmount,
             isComingAlone: req.isComingAlone || false,
-            plan: type,
-            subscriptorId: subscriptorId,
+            plan: req.plan,
+            subscriptorId: req.subscriptorId,
             payment: charge,
             validity: validity,
             startsAt: _formattedStartsAt,
@@ -477,9 +491,10 @@ const addSubscription = function (paymentSource, charge, discount) {
             email: req.email
         }
 
-        createSubscription(req)
+        createSubscription(_request)
             .then((result) => {
                 console.log(result)
+                resolve(result);
             }).catch(err=> {
                 reject(err);
             })
@@ -491,8 +506,8 @@ module.exports = {
     saveSubscriptionFromStripe: async function (charge, req, discount) {
         return addSubscription('Stripe', charge, req, discount);
     },
-    saveSubscriptionFromPayPal: async function (req, res) {
-        return addSubscription('PayPal', req.payment, req);
+    saveSubscriptionFromPayPal: async function (req, discount) {
+        return addSubscription('PayPal', req.payment, req, discount);
     },
 
     checkIfUserHasDiscount: async function(req, res) {

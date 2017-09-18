@@ -13,8 +13,8 @@ const client = new ApolloClient({
 });
 
 const UPDATE_DISCOUNT_CODE_AND_SUBSCRIPTION= gql`
-    mutation UpdateDiscountAndSubscription($discountId: ID!, $used: Boolean!, $subscriptionId: ID, $userId: ID)) {
-    updateDiscountCode(id: $discountId, used: $used, subscriptionId: $subscriptionId, userId: $userId) {
+    mutation UpdateDiscountAndSubscription($discountId: ID!, $used: Boolean!, $subscriptionId: ID, $userId: ID) {
+    updateDiscountCode(id: $discountId, used: $used, pPSubscriptionId: $subscriptionId, userId: $userId) {
         id
     }
 }
@@ -87,7 +87,7 @@ const markDiscountCodeAsUsed = async function(req, subscriptionId){
             variables : {
                 discountId: req.discountCodeId,
                 used: true,
-                subscriptionId: subscriptionId,
+                pPSubscriptionId: subscriptionId,
                 userId: req.subscriptionId
             }
         });
@@ -125,13 +125,6 @@ const markDiscountCodeAsUsed = async function(req, subscriptionId){
     })
 }
 
-const MarkDiscountCode = async function(req, subscriptionId) {
-    
-    if(req.subscriptorId) {
-
-    }
-}
-
 
 const GetUserDisCountCode = async function (req) {
     return new Promise((resolve, reject) => {
@@ -160,9 +153,6 @@ const GetUserDisCountCode = async function (req) {
                 console.log(err);
                 reject(err);
             })
-        } else {
-
-
         }
     })
 }
@@ -194,11 +184,11 @@ module.exports = {
     },
 
     isValid: function(discount) {
-        _valid = discount && discount.id && !discount.user && !discount.pPSubscription 
+        const _valid = discount && discount.id && !discount.user && !discount.pPSubscription 
         console.log('Is discount valid?' , _valid);
         return _valid;
     },
-    markDiscountCodeAsUsed: function(req, subscriptionId) {
-        markDiscountCodeAsUsed(req, subscriptionId)
+    markDiscountCodeAsUsed: async function(req, subscriptionId) {
+        return markDiscountCodeAsUsed(req, subscriptionId)
     }
 }

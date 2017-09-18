@@ -23,7 +23,7 @@ const postSubscription = async (req, res) => {
     if (allowedPaymentMethods.includes(request.type)) {
       const response = await payment.createSubscription(request);
       console.log('Checking response: ', response);
-      send(res, 200, response.data.createPPSubscription);
+      send(res, 200, response);
     } else {
       send(res, 404, 'Invalid payment type: ' + request.type);
     } 
