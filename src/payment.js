@@ -2,6 +2,7 @@
 const config = require('./config');
 const pricing = require('./pricing');
 const subscription = require('./subscription');
+const discountsService = require('./discounts');
 const stripe = require('stripe')(config.stripe.apikey);
 const uuidv4 = require('uuid/v4');
 
@@ -11,10 +12,8 @@ module.exports = {
     createSubscription: async function (req, res) {
         let subscriptionResult;
         console.log('Trying to create subscription');
-        let discount
-        if(req.subscriptorId) {
-            discount = await subscription.checkIfUserHasDiscount(req);
-        }
+        let discount = await discounts.getDiscount(req);
+        console.log('Got discount', discount);
         switch(req.type) {
             case "paypal":
                 console.log('[PayPal] Request data: ', req);
@@ -39,17 +38,13 @@ module.exports = {
                 console.log('Can not create subscription');
         }
         console.log('Going to retreive subscription result');
-        if(discount && discount.hasDiscountCode) {
-            console.log('Marking discount code as used')
-            subscription.markDiscountCode(discount);
-        }
         return subscriptionResult;
     }
 }
 
 const createCharge = function (customer, req, discount) {
     // check if user has any kind of discount code with him 
-    const amount = pricing.totalChargeAmount(req, discount);
+    const amount = pricing.totalChargeAmount(req, discountsService.isValid(discount));
     console.log('[Stripe] Total charge amount in cents: ', amount);
     console.log('[Stripe] Customer created: ', customer.id);
     console.log('[Stripe] Customer default source', customer.default_source);

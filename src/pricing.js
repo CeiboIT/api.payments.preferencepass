@@ -32,10 +32,10 @@ const pricesWithDiscount = {
 
 module.exports = {
   // Returns final price in cents in order to send it to Stripe
-  totalChargeAmount: function (req, discount) {
+  totalChargeAmount: function (req, applyDiscount) {
     console.log('Total charge amount for request: ' , req)
     let pricing;
-    if(discount && discount.hasDiscountCode) {
+    if(applyDiscount) {
         pricing = pricesWithDiscount[req.plan]
     } else {
       pricing = prices[req.plan];

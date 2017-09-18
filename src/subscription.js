@@ -5,46 +5,14 @@ const createNetworkInterface = require('apollo-client').createNetworkInterface;
 const moment = require('moment');
 const gql = require('graphql-tag');
 const config = require('./config');
- 
+const discountsService = require('./discounts');
+
 const client = new ApolloClient({
   networkInterface: createNetworkInterface({
     uri : 'https://api.graph.cool/simple/v1/' + config.graphcool.uri
   })
 });
 
-const GET_USER_DISCOUNTS_CODES = gql`
-    query getUserCodes($userId: ID!, $used: Boolean!){
-        User(id: $userId) {
-            discountCodes(filter: {
-                used: $used
-              }, first: 1) {
-                id
-              }
-
-        }
-    }
-`
-
-const GET_USER_BASIC_DATA = gql`
-    query GetUser($userId: ID!) {
-        User(id: $userId) {
-            id
-            email
-            givenName
-            name
-            familyName
-        }
-    }
-`
-
-const UPDATE_DISCOUNT_CODE = gql`
-    mutation UpdateDiscount($discountId: ID!, $used: Boolean!) {
-        updateDiscountCode(id: $discountId, used: $used) {
-            id
-        }
-
-    }
-`
 
 const CHECK_SUBSCRIPTIONS_BY_EMAIL = gql`
     query CheckSubscriptionsByEmail($email: String! ) {
@@ -87,56 +55,38 @@ const CREATE_SUBSCRIPTION_WITHOUT_USER = gql`
             validity
             kids
             adults
-            companions {
-                id
-            }
             isComingAlone
             plan
-            user {
-                id
-            }
-            reservations {
-                id
-            }
         }
-
-
     }
 `
 
-const UPDATE_SUBSCRIPTION_USER = gql`
-    mutation UpdateSubscriptionUser($userId: ID!, $subscriptionId: ID!) {
-        updatePPSubscription(
-            id: $subscriptionId
-            userId: $userId
-          ) {
-            id
-          }
-    }
-`;
 
-const CREATE_SUBSCRIPTION = gql`
-    mutation NewPPSubscription(
-        $adults: Int!,
-        $kids: Int!,
-        $isComingAlone: Boolean,
-        $plan: String!,
-        $subscriptorId: ID!,
-        $payment: Json!,
-        $startsAt: DateTime!,
-        $paymentSource: String!,
-        $validity: DateTime!
-    ) {
+const CREATE_SUBSCRIPTION_WITH_DISCOUNT_AND_WITHOUT_USER = gql`
+mutation NewPPSubscriptionWithoutUserAndWithDiscount(
+    $adults: Int!,
+    $kids: Int!,
+    $isComingAlone: Boolean,
+    $email: String!,
+    $plan: String!,
+    $payment: Json!,
+    $startsAt: DateTime!,
+    $paymentSource: String!,
+    $validity: DateTime!,
+    $discountCodeId: ID!
+) {
+    
     createPPSubscription(
         adults: $adults,
         kids: $kids,
         isComingAlone: $isComingAlone,
         plan: $plan,
-        userId: $subscriptorId,
+        email: $email,
         payment: $payment,
         validity: $validity,
         startsAt: $startsAt
-        paymentSource: $paymentSource
+        paymentSource: $paymentSource,
+        discountCodeId: $discountCodeId
     ) {
         id
         validity
@@ -155,7 +105,107 @@ const CREATE_SUBSCRIPTION = gql`
         }
     }
 }
+`
+
+const UPDATE_SUBSCRIPTION_USER = gql`
+    mutation UpdateSubscriptionUser($userId: ID!, $subscriptionId: ID!) {
+        updatePPSubscription(
+            id: $subscriptionId
+            userId: $userId
+          ) {
+            id
+          }
+    }
 `;
+
+const CREATE_SUBSCRIPTION_WITH_DISCOUNT_CODE = gql`
+    mutation NewPPSubscription(
+            $adults: Int!,
+            $kids: Int!,
+            $isComingAlone: Boolean,
+            $plan: String!,
+            $subscriptorId: ID!,
+            $payment: Json!,
+            $startsAt: DateTime!,
+            $paymentSource: String!,
+            $validity: DateTime!,
+            $discountCodeId: ID!
+        ) {
+        createPPSubscription(
+            adults: $adults,
+            kids: $kids,
+            isComingAlone: $isComingAlone,
+            plan: $plan,
+            userId: $subscriptorId,
+            payment: $payment,
+            validity: $validity,
+            startsAt: $startsAt,
+            paymentSource: $paymentSource.
+            discountCodeId: $discountCodeId
+        ) {
+            id
+            validity
+            kids
+            adults
+            companions {
+                id
+            }
+            isComingAlone
+            plan
+            user {
+                id
+            }
+            reservations {
+                id
+            }
+        }
+    }
+
+`;
+
+
+const CREATE_SUBSCRIPTION = gql`
+        mutation NewPPSubscription(
+            $adults: Int!,
+            $kids: Int!,
+            $isComingAlone: Boolean,
+            $plan: String!,
+            $subscriptorId: ID!,
+            $payment: Json!,
+            $startsAt: DateTime!,
+            $paymentSource: String!,
+            $validity: DateTime!
+        ) {
+        createPPSubscription(
+            adults: $adults,
+            kids: $kids,
+            isComingAlone: $isComingAlone,
+            plan: $plan,
+            userId: $subscriptorId,
+            payment: $payment,
+            validity: $validity,
+            startsAt: $startsAt
+            paymentSource: $paymentSource
+        ) {
+            id
+            validity
+            kids
+            adults
+            companions {
+                id
+            }
+            isComingAlone
+            plan
+            user {
+                id
+            }
+            reservations {
+                id
+            }
+        }
+    }
+`;
+
 
 
 const getUserBasicData = async function(userId) {
@@ -174,25 +224,7 @@ const getUserBasicData = async function(userId) {
     })
 }
 
-const markDiscountCodeAsUsed = async function(discount){
-    return new Promise((resolve, reject) => {
-        console.log('Going to check user discount code');
-        client.mutate({
-            mutation: UPDATE_DISCOUNT_CODE,
-            variables : {
-                discountId: discount.id,
-                used: true
-            }
-        }).then(result => {
-            const _resp = result.data.updateDiscountCode;
-            resolve(_resp);
-        })
-        .catch(err => {
-            console.log(err);
-            reject(err);
-        })
-    })
-}
+
 
 const getSubscriptionsByEmail = async function(email) {
     const _response = await client.query({
@@ -221,7 +253,7 @@ const LinkSubscriptionsWithUser = async function(userId, subscriptionsToLink){
 
         Promise.all(_promises)
             .then((result=> resolve(result)))
-            .catch(err => {
+            .catch((err) => {
                 console.log(err);
                 reject(err);
             })
@@ -306,110 +338,158 @@ function calculateValidityDate(Plan, startsAt){
     return  ''+ _formattedValidity;
 }
 
-const GetUserDisCountCode = async function (req, res) {
-    return new Promise((resolve, reject) => {
 
-        //User is logged in and everybody is happy
-        if(req.subscriptorId) {
-            const _userId = req.subscriptorId;
-            console.log(_userId);
-            console.log('Cheking user discount code');
-            client.query({
-                query: GET_USER_DISCOUNTS_CODES,
-                variables : {
-                    userId: _userId,
-                    used: false
-                },
-                fetchPolicy: 'network-only'
-            }).then(result => {
-                let resp = {
-                    id: '',
-                    hasDiscountCode: false
-                }
-                if(result.data.User && result.data.User.discountCodes && result.data.User.discountCodes.length) {
-                    const _discount = result.data.User.discountCodes[0];
-                    resp.hasDiscountCode = true;
-                    resp.id = _discount.id;
-                    console.log('Discount Code Result: ', resp);
-                    
-                }
-                resolve(resp);
-            })
-            .catch(err => {
-                console.log(err);
-                reject(err);
-            })
-        } else {
+function createSubscriptionWithUser(req) {
+    let mutation;
+    if(req.discountCodeId) {
+        mutation = client.mutate({
+            mutation: CREATE_SUBSCRIPTION_WITH_DISCOUNT_CODE,
+            variables: {
+                kids: req.kidsAmount,
+                adults: req.adultsAmount,
+                isComingAlone: req.isComingAlone || false,
+                plan: req.type,
+                subscriptorId: req.subscriptorId,
+                payment: req.charge,
+                validity: req.validity,
+                startsAt: req.startsAt,
+                paymentSource: req.paymentSource,
+                discountCodeId: req.discountCodeId
+            }
+        })
+    } else {
+        mutation = client.mutate({
+            mutation: CREATE_SUBSCRIPTION,
+            variables: {
+                kids: req.kidsAmount,
+                adults: req.adultsAmount,
+                isComingAlone: req.isComingAlone || false,
+                plan: type,
+                subscriptorId: subscriptorId,
+                payment: charge,
+                validity: validity,
+                startsAt: _formattedStartsAt,
+                paymentSource: paymentSource
+            }
+        })
+    }
 
-
-        }
-    })
+    mutation
+        .then(result => {
+            const _subscription = result.data.createPPSubscription;
+            resolve(_subscription);  
+        }).catch(err=> reject(err));
 }
 
-const addSubscription = function (paymentSource, charge, req, res) {
+function createSubscriptionWithoutUser(req) {
+    return new Promise((resolve, reject) => {
+        let mutation;
+        if(req.discountCodeId) {
+            mutation = client.mutate({
+                mutation: CREATE_SUBSCRIPTION_WITH_DISCOUNT_AND_WITHOUT_USER,
+                variables: {
+                    kids: req.kidsAmount,
+                    adults: req.adultsAmount,
+                    isComingAlone: req.isComingAlone || false,
+                    plan: req.type,
+                    payment: req.charge,
+                    validity: req.validity,
+                    startsAt: req.startsAt,
+                    email: req.email,
+                    paymentSource: req.paymentSource,
+                    discountCodeId: req.discountCodeId
+                }
+            })
+        } else {
+            mutation = client.mutate({
+                mutation: CREATE_SUBSCRIPTION_WITHOUT_USER,
+                variables: {
+                    kids: req.kidsAmount,
+                    adults: req.adultsAmount,
+                    isComingAlone: req.isComingAlone || false,
+                    plan: req.type,
+                    payment: req.charge,
+                    validity: req.validity,
+                    startsAt: req.startsAt,
+                    email: req.email,
+                    paymentSource: req.paymentSource
+                }
+            })
+        }
+
+        mutation
+        .then(result => {
+            const _subscription = result.data.createPPSubscription;
+            resolve(_subscription);  
+        }).catch(err=> reject(err));
+    })
+    
+
+}
+
+
+function createSubscription(req) {
+    return new Promise((resolve, reject)=> {
+        // Cases to handle.
+        // case 1: subscriptorId exists
+        let mutation;
+        if(req.subscriptorId) {
+            mutation = createSubscriptionWithUser(req)
+        } else {
+            // case 2: exists subscriptor email (for not logged in or register users)
+            mutation = createSubscriptionWithoutUser(req);
+        }
+
+        mutation.then(subscription => {
+            if(req.discountCodeId) {
+                //the discount code has to be added to subscription, user and marked as used
+                discountsService.markDiscountCodeAsUsed(req, subscription.id);
+            }
+            resolve(subscription);
+        })
+        .catch(err => {
+            reject(err)
+        })
+    });
+}
+
+const addSubscription = function (paymentSource, charge, discount) {
     return new Promise((resolve, reject) => {
         const type = req.plan;
         var startsAt = moment(req.startsAt).clone();
         startsAt = startsAt.hours(0).minutes(0).seconds(0).milliseconds(0);
         const _formattedStartsAt = startsAt.toISOString();
         const validity = '' + calculateValidityDate(type, _formattedStartsAt);
-        
-        if(req.subscriptorId) {
-            const subscriptorId = req.subscriptorId;
-            console.log('Validity: ', validity);
-            console.log('Subscriptor: ', subscriptorId);
-            client.mutate({
-                mutation: CREATE_SUBSCRIPTION,
-                variables: {
-                    kids: req.kidsAmount,
-                    adults: req.adultsAmount,
-                    isComingAlone: req.isComingAlone || false,
-                    plan: type,
-                    subscriptorId: subscriptorId,
-                    payment: charge,
-                    validity: validity,
-                    startsAt: _formattedStartsAt,
-                    paymentSource: paymentSource
-                }
-            }).then(data => {
-                console.log('Subscription mutation response: ', data);
-                resolve(data);
-            }).catch(error => {
-                console.log(err)
-                reject(error)
-            })
-        } else {
-            //If subscriptor is trying to pay but is not logged in
-            client.mutate({
-                mutation: CREATE_SUBSCRIPTION_WITHOUT_USER,
-                variables: {
-                    kids: req.kidsAmount,
-                    adults: req.adultsAmount,
-                    isComingAlone: req.isComingAlone || false,
-                    plan: type,
-                    payment: charge,
-                    validity: validity,
-                    startsAt: _formattedStartsAt,
-                    email: req.email,
-                    paymentSource: paymentSource
-                }
-            }).then(data => {
-                console.log('Subscription mutation response: ', data);
-                resolve(data);
-            }).catch(error => {
-                console.log(err)
-                reject(error)
-            })
 
-        }
+        const _validDiscount = discountsService.isValid(discount);
         
+        let _request = {
+            kids: req.kidsAmount,
+            adults: req.adultsAmount,
+            isComingAlone: req.isComingAlone || false,
+            plan: type,
+            subscriptorId: subscriptorId,
+            payment: charge,
+            validity: validity,
+            startsAt: _formattedStartsAt,
+            paymentSource: paymentSource,
+            discountCodeId: (_validDiscount) ? discount.id : null,
+            email: req.email
+        }
+
+        createSubscription(req)
+            .then((result) => {
+                console.log(result)
+            }).catch(err=> {
+                reject(err);
+            })
     })
 }
 
 
 module.exports = {
-    saveSubscriptionFromStripe: async function (charge, req, res) {
-        return addSubscription('Stripe', charge, req);
+    saveSubscriptionFromStripe: async function (charge, req, discount) {
+        return addSubscription('Stripe', charge, req, discount);
     },
     saveSubscriptionFromPayPal: async function (req, res) {
         return addSubscription('PayPal', req.payment, req);
@@ -426,5 +506,8 @@ module.exports = {
     },
     checkUserSubscriptions: async function(userId) {
         return CheckIfUserHasUnlinkedSubscriptions(userId);
+    },
+    searchDiscountCode: async function(code) {
+        return getDiscountCode(code)
     }
 }
