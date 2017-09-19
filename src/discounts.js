@@ -91,28 +91,6 @@ const markDiscountCodeAsUsed = async function(req, subscriptionId){
                 userId: req.subscriptionId
             }
         });
-        
-        /*
-        if (!subscriptionId) {
-            mutation = client.mutate({
-                mutation: UPDATE_DISCOUNT_CODE_AND_SUBSCRIPTION,
-                variables : {
-                    discountId: req.discountCodeId,
-                    used: true,
-                    subscriptionId: subscriptionId,
-                    userId: req.subscriptionId
-                }
-            })
-        } else {
-            mutation = client.mutate({
-                mutation: UPDATE_DISCOUNT_CODE_AND_SUBSCRIPTION,
-                variables: {
-                    discountId: discount.id,
-                    used: true,
-                    subscriptionId: subscriptionId
-                }
-            })
-        }*/
 
         mutation.then(result => {
             const _resp = result.data.updateDiscountCode;
